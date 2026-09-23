@@ -1,0 +1,24 @@
+# Apache 2.4: rutas limpias, tanto en el dominio como en una subcarpeta.
+# Requiere AllowOverride para Options, Indexes y FileInfo, y mod_rewrite.
+Options -MultiViews
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Solo redirigir peticiones originales, no el index resuelto internamente.
+  # /index.html -> / ; /proyecto/menu/index.html -> /proyecto/menu/
+  RewriteCond %{THE_REQUEST} "\s/+([A-Za-z0-9/_-]*)index\.html(?:[?\s])" [NC]
+  RewriteRule ^(.*/)?index\.html$ /%1 [R=301,L]
+
+  # Una página existente /contacto.html -> /contacto (conserva la query).
+  RewriteCond %{THE_REQUEST} "\s/+([A-Za-z0-9/_-]+)\.html(?:[?\s])" [NC]
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ /%1 [R=301,L]
+
+  # Resolver extensiones sin afectar archivos, carpetas ni recursos inexistentes.
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^([A-Za-z0-9/_-]+)$ $1.html [END]
+</IfModule>

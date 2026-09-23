@@ -1,0 +1,34 @@
+.home-shell { max-width: 1200px; margin: auto; }
+.brand-panel { background: #171315; color: var(--cream); padding: 24px; text-align: center; }
+.brand-image { width: min(280px, 85%); margin: 24px auto; }
+.brand-image img { width: 100%; }
+.brand-fallback { display: block; padding: 4rem 0; font-size: 2.8rem; font-weight: 900; letter-spacing: -.08em; }
+.brand-fallback span { color: var(--orange); }
+.brand-line, .brand-caption { display: none; }
+.home-content { padding: 36px 24px 0; }
+.home-content > .eyebrow { color: var(--muted); }
+.home-content h1 { margin-bottom: 1.6rem; }
+.primary-links { display: grid; gap: 10px; }
+.backup-contact { display: block; padding-block: 14px; font-size: .8rem; }
+.action-link { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 20px; text-decoration: none; font-size: 1.4rem; font-weight: 700; border-radius: 2px; }
+.action-link small { display: block; margin-bottom: 4px; font-size: .66rem; font-weight: 400; letter-spacing: .06em; }
+.action-link > span:last-child { font-size: 1.9rem; }
+.action-link--orange { background: var(--orange); color: var(--carbon); }
+.action-link--dark { background: var(--carbon); color: var(--cream); }
+.action-link[href]:hover { background: var(--yellow); color: var(--carbon); }
+.link-section { margin-block: 32px; }
+.link-section h2 { margin-bottom: 12px; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; }
+.link-rows { border-top: 1px solid var(--line); }
+.link-rows a { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 50px; border-bottom: 1px solid var(--line); text-decoration: none; }
+.link-rows small { font-size: .65rem; }
+.link-rows a[href]:hover { padding-left: 8px; background: #efe4d4; }
+@media (min-width: 760px) {
+  .home-shell { display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100svh - 68px); }
+  /* Altura mínima, no fija: el panel crece y se desplaza con todo su contenido. */
+  .brand-panel { align-self: start; min-height: calc(100svh - 68px); display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding: 40px; text-align: left; }
+  .brand-image { width: 100%; max-width: 480px; margin-block: auto; }
+  .brand-line { display: block; font-size: clamp(2rem, 3.8vw, 3.5rem); font-weight: 700; letter-spacing: -.055em; line-height: 1.1; }
+  .brand-caption { display: block; margin: 0; border-top: 1px solid #64574c; padding-top: 20px; font-size: .75rem; }
+  .home-content { padding: 60px 44px 0; }
+  .home-content h1 { font-size: clamp(3rem, 5vw, 4.6rem); }
+}

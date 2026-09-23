@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F9F1E6">
+  <meta name="description" content="Menú de Antojea2. Personaliza tus frappés, mini hotcakes y combos, y pide por WhatsApp.">
+  <title>Menú · Antojea2</title>
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="icon" type="image/png" href="../assets/icons/favicon.png">
+  <link rel="stylesheet" href="../assets/css/global.css">
+  <link rel="stylesheet" href="../assets/css/menu.css">
+  <script defer src="../assets/js/config.js"></script>
+  <script defer src="../assets/js/products.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+  <script defer src="../assets/js/menu.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <header class="site-header"><nav class="header-inner wrap" aria-label="Principal"><a class="wordmark" data-link="home" href="../" aria-label="Antojea2, inicio" data-image-frame><img src="../assets/icons/logo_letras%20negras.png" alt="" width="128" height="50" data-fallback><span class="brand-fallback" hidden>Antojea<span>2</span></span></a><button type="button" id="open-contact" class="text-link contact-trigger" aria-haspopup="dialog" aria-controls="contact-dialog" hidden>Contacto</button></nav></header>
+  <main id="contenido" class="wrap menu-main">
+    <header class="menu-intro"><h1>¿Qué se te antoja?</h1><p>Precios en MXN · Vigentes hasta nuevo aviso.</p><p class="business-hours"><strong>Horario</strong><span data-business-hours>Miércoles a domingo · 5:00 p. m. a 10:00 p. m.</span></p><p class="service-notice" data-service-notice>Por el momento, solo envío a domicilio o recoger.</p></header>
+    <nav class="view-switch" aria-label="Elige cómo consultar el menú" id="view-switch" hidden>
+      <button type="button" data-view="menu" aria-pressed="true" aria-controls="menu-view">Ver menú</button>
+      <button type="button" data-view="order" aria-pressed="false" aria-controls="catalogo">Armar pedido</button>
+    </nav>
+    <section id="menu-view" aria-label="Menú en imagen" class="menu-viewer">
+      <div class="viewer-toolbar" aria-label="Controles del menú" hidden id="viewer-controls">
+        <span class="viewer-caption">Amplía para leer</span>
+        <button type="button" id="zoom-out" aria-label="Reducir menú">−</button>
+        <output id="zoom-label" aria-live="polite">100%</output>
+        <button type="button" id="zoom-in" aria-label="Ampliar menú">+</button>
+        <button type="button" id="zoom-reset">Ajustar</button>
+      </div>
+      <div class="menu-viewport" id="menu-viewport" role="region" aria-label="Menú completo, desplázate para leerlo" tabindex="0">
+        <div class="menu-sheet" id="menu-sheet" data-image-frame>
+          <img id="menu-image" src="../assets/img/menu/menu.png" alt="Menú completo de Antojea2. Para consultar los productos en texto elige Armar pedido." width="1024" height="1536" data-fallback>
+          <p class="image-fallback" hidden>La imagen no está disponible. Consulta los productos en Armar pedido.</p>
+        </div>
+      </div>
+    </section>
+    <section id="catalogo" class="catalog" aria-label="Elige tus productos" hidden>
+      <nav class="categories" id="categories" aria-label="Filtrar productos por categoría"></nav>
+      <p id="catalog-status" class="sr-only" role="status"></p>
+      <div class="product-grid" id="products"></div>
+    </section>
+    <noscript><p>El menú está disponible en imagen. Activa JavaScript para personalizar productos y armar tu pedido.</p></noscript>
+    <p id="order-status" class="order-status" role="status"></p>
+    <section id="promociones" class="terms" aria-label="Condiciones">
+      <details><summary>Promociones y condiciones</summary>
+        <div id="promotion-terms"><p>Promociones válidas hasta agotar existencias. Sin restricciones adicionales.</p></div>
+        <ul><li>Mini hotcakes: hasta 2 untables y 1 topping incluidos. Untable extra $5; topping extra $10.</li><li>Frappés: leche entera o deslactosada (+$5), y crema batida opcional.</li><li>En los combos, la leche deslactosada no tiene costo extra.</li><li>Envío directo: $20, pedido mínimo $150. Cobertura por confirmar.</li><li>Los precios y condiciones pueden variar en las plataformas de delivery.</li></ul>
+      </details>
+    </section>
+  </main>
+  <footer class="site-footer wrap"><a data-link="home" href="../">Volver al inicio</a><span>Más que comida, son antojos.</span></footer>
+
+  <div class="cart-bar" id="cart-bar" hidden><button type="button" id="review-order"><span>Ver pedido <span id="cart-count"></span></span><strong id="cart-subtotal"></strong></button></div>
+
+  <dialog id="contact-dialog" class="sheet contact-dialog" aria-labelledby="contact-title">
+    <header class="sheet-header"><h2 id="contact-title">Contacto</h2><button type="button" class="close-button" data-close="contact-dialog" aria-label="Cerrar contacto">×</button></header>
+    <div class="sheet-body">
+      <a class="contact-option" data-link="whatsapp" target="_blank" rel="noopener noreferrer" aria-disabled="true"><span><strong>Número principal</strong><span data-contact-number="whatsapp"></span></span><span aria-hidden="true">↗</span></a>
+      <a class="contact-option" data-link="whatsappBackup" target="_blank" rel="noopener noreferrer" hidden><span><strong>Número personal · respaldo</strong><span data-contact-number="whatsappBackup"></span></span><span aria-hidden="true">↗</span></a>
+    </div>
+  </dialog>
+
+  <dialog id="photo-dialog" class="sheet photo-dialog" aria-labelledby="photo-title">
+    <header class="sheet-header"><h2 id="photo-title">Foto del producto</h2><button type="button" class="close-button" data-close="photo-dialog" aria-label="Cerrar imagen">×</button></header>
+    <div class="photo-controls" aria-label="Ampliación de la foto">
+      <button type="button" id="photo-zoom-out" aria-label="Reducir foto">−</button><output id="photo-zoom-label" aria-live="polite">100%</output><button type="button" id="photo-zoom-in" aria-label="Ampliar foto">+</button><button type="button" id="photo-reset">Ajustar</button>
+    </div>
+    <p class="photo-instructions" id="photo-help">Amplía con + y desplázate para ver los detalles.</p>
+    <div id="photo-viewport" class="photo-viewport" role="region" aria-label="Imagen ampliada" aria-describedby="photo-help" tabindex="0">
+      <div id="photo-canvas" data-image-frame><img id="product-photo" alt="" data-fallback><p id="photo-fallback" class="image-fallback" hidden>La foto no está disponible por el momento.</p></div>
+    </div>
+  </dialog>
+
+  <dialog id="customizer" class="sheet" aria-labelledby="custom-title">
+    <form id="custom-form">
+      <header class="sheet-header"><div><p class="eyebrow">A tu gusto</p><h2 id="custom-title"></h2></div><button type="button" class="close-button" data-close="customizer" aria-label="Cerrar personalización">×</button></header>
+      <div class="sheet-body"><p id="custom-description" class="muted"></p><div id="custom-options"></div><p id="custom-error" class="form-error" role="alert"></p></div>
+      <footer class="sheet-actions"><label class="quantity-label" for="custom-quantity">Cantidad<input id="custom-quantity" type="number" min="1" max="99" step="1" value="1" required inputmode="numeric"></label><button class="button button--dark" type="submit" id="custom-submit">Agregar <span id="custom-total"></span></button></footer>
+    </form>
+  </dialog>
+
+  <dialog id="cart-dialog" class="sheet" aria-labelledby="draft-title">
+    <header class="sheet-header"><h2 id="draft-title">Tu pedido</h2><button type="button" class="close-button" data-close="cart-dialog" aria-label="Cerrar pedido">×</button></header>
+    <div class="sheet-body">
+      <p id="cart-empty" hidden>Tu pedido está vacío. Elige algo rico en Armar pedido.</p>
+      <ul id="draft-items" class="draft-items"></ul>
+      <div id="cart-details">
+        <button type="button" class="text-button" id="clear-list">Vaciar pedido</button>
+        <fieldset class="fulfillment-choice"><legend>¿Cómo lo recibes?</legend>
+          <label><input type="radio" name="fulfillment" value="delivery" checked> Envío a domicilio</label>
+          <label><input type="radio" name="fulfillment" value="pickup"> Recoger</label>
+        </fieldset>
+        <section id="pickup-details" class="pickup-details" aria-label="Punto para recoger" hidden><p>Te compartimos el punto para recoger al confirmar tu pedido por WhatsApp.</p></section>
+        <details id="delivery-details" class="delivery-details"><summary>Datos de entrega · opcional</summary>
+          <label for="delivery-address">Dirección y referencias</label>
+          <textarea id="delivery-address" rows="2" maxlength="400" autocomplete="street-address" placeholder="Calle, número, colonia y referencias"></textarea>
+          <div class="location-actions"><button type="button" class="button" id="use-location">Usar mi ubicación</button><button type="button" class="text-button" id="remove-location" hidden>Quitar ubicación</button></div>
+          <p class="muted">Agrega tu ubicación actual al pedido. Revisa que sea el lugar de entrega.</p>
+          <p id="location-status" class="muted" role="status"></p>
+          <div id="location-preview" hidden>
+            <iframe id="customer-map" class="map-preview" title="Vista previa de tu ubicación de entrega en OpenStreetMap" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            <p class="map-attribution">© <a data-link="maps.attribution">OpenStreetMap</a></p>
+          </div>
+          <a id="location-map" class="text-link" target="_blank" rel="noopener noreferrer" hidden>Revisar punto en Google Maps ↗</a>
+        </details>
+        <label for="order-notes">Observaciones</label><textarea id="order-notes" rows="2" maxlength="600" placeholder="¿Algo más que debamos saber?"></textarea>
+      </div>
+    </div>
+    <footer class="cart-actions" id="cart-actions"><p class="subtotal">Subtotal con extras <strong id="subtotal"></strong></p><p class="muted" id="fulfillment-note">Envío y disponibilidad por confirmar.</p><a id="send-list" class="button button--dark" target="_blank" rel="noopener noreferrer" aria-disabled="true">Enviar pedido por WhatsApp ↗</a><a id="send-backup" class="backup-contact" target="_blank" rel="noopener noreferrer" hidden>¿No te responden en el WhatsApp principal? Enviar al respaldo ↗</a></footer>
+  </dialog>
+</body>
+</html>

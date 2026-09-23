@@ -1,0 +1,66 @@
+:root {
+  --carbon: #1B1B1B;
+  --orange: #E65A1F;
+  --yellow: #F4B000;
+  --cream: #F9F1E6;
+  --sage: #6B7F73;
+  --line: #cfc4b6;
+  --muted: #625a50;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--carbon);
+  background: var(--cream);
+  font-synthesis: none;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 88px; }
+body { margin: 0; padding-top: 68px; line-height: 1.55; }
+img { display: block; max-width: 100%; height: auto; }
+[hidden] { display: none !important; }
+a { color: inherit; text-underline-offset: .22em; }
+button, textarea, input, select { font: inherit; }
+button, .button { min-height: 44px; }
+button, a[href], summary { cursor: pointer; }
+button { color: inherit; }
+:focus-visible { outline: 3px solid var(--sage); outline-offset: 4px; }
+h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { line-height: 1.08; }
+h1 { font-size: clamp(2.75rem, 8vw, 5.5rem); letter-spacing: -.065em; }
+h2 { font-size: clamp(1.6rem, 4vw, 2.5rem); letter-spacing: -.045em; }
+h3 { font-size: 1.2rem; letter-spacing: -.025em; }
+.eyebrow { font-size: .7rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+.wrap { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
+.muted { color: var(--muted); font-size: .9rem; }
+.business-hours { border-left: 2px solid var(--sage); padding-left: 12px; margin-block: 0 24px; font-size: .8rem; color: var(--muted); }
+.business-hours strong { display: block; color: var(--carbon); margin-bottom: 3px; }
+.service-notice { font-size: .8rem; color: var(--muted); margin-bottom: 24px; }
+.map-preview { display: block; width: 100%; height: 240px; border: 1px solid var(--line); background: #e9e0d4; }
+.map-attribution { font-size: .65rem; color: var(--muted); margin: 6px 0 12px; }
+.text-link { font-size: .9rem; font-weight: 700; }
+.button { display: inline-flex; align-items: center; justify-content: center; padding: .8rem 1.2rem; border: 1px solid var(--carbon); text-decoration: none; font-weight: 700; border-radius: 2px; }
+.button--dark { color: var(--cream); background: var(--carbon); }
+.button:hover { background: var(--yellow); color: var(--carbon); }
+a[aria-disabled="true"] { cursor: default; color: var(--muted); }
+.site-footer { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; border-top: 1px solid var(--line); padding-block: 1.5rem; font-size: .75rem; }
+.skip-link { position: fixed; left: 12px; top: -100px; z-index: 200; padding: 12px; background: var(--cream); }
+.skip-link:focus { top: 12px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.image-fallback { display: grid; place-items: center; min-height: 180px; margin: 0; padding: 1.5rem; color: var(--muted); background: #e9e0d4; text-align: center; }
+@media (prefers-reduced-motion: no-preference) { a, button { transition: background-color .15s ease, color .15s ease; } }
+
+/* Barra opaca por encima del contenido, sin ocultar los destinos de navegación. */
+.site-header { position: fixed; inset: 0 0 auto; z-index: 100; background: var(--cream); border-bottom: 1px solid var(--line); }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 68px; }
+.header-inner .text-link { font-size: .8rem; }
+.wordmark { font-size: 1.7rem; font-weight: 900; letter-spacing: -.08em; text-decoration: none; }
+.wordmark span { color: var(--orange); }
+.wordmark img { width: 128px; height: 50px; object-fit: contain; }
+.wordmark .brand-fallback { padding: 0; font-size: 1.7rem; color: var(--carbon); }
+.site-loader { position: fixed; inset: 0; z-index: 150; display: grid; place-content: center; justify-items: center; gap: 18px; background: var(--cream); }
+.site-loader svg { width: 80px; height: 96px; color: var(--carbon); }
+.site-loader p { margin: 0; font-size: .8rem; letter-spacing: .04em; }
+@media (prefers-reduced-motion: no-preference) {
+  .blender-jar { transform-origin: 40px 60px; animation: blend-shake .16s infinite alternate; }
+  .blender-mix { transform-origin: 40px 43px; animation: blend-mix .6s infinite alternate ease-in-out; }
+  @keyframes blend-shake { from { transform: rotate(-1.5deg); } to { transform: rotate(1.5deg); } }
+  @keyframes blend-mix { from { transform: translateY(2px) scaleX(.85); } to { transform: translateY(-2px) scaleX(1.05); } }
+}
