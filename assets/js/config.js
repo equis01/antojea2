@@ -28,7 +28,7 @@ const CONFIG = {
     embed: "https://www.openstreetmap.org/export/embed.html",
     attribution: "https://www.openstreetmap.org/copyright"
   },
-  menuImage: "assets/img/menu/menu.png",
+  menuImage: "assets/img/menu/menu.webp",
   // Agregar únicamente términos reales confirmados, uno por cadena de texto.
   promotionTerms: [
     "Promociones válidas hasta agotar existencias.",

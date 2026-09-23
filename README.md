@@ -29,10 +29,10 @@ antojea2/
 
 ## Marca e imágenes
 
-- La portada usa el logo transparente `assets/icons/logo_letras blancas.png` sobre fondo oscuro; el encabezado usa `assets/icons/logo_letras negras.png` sobre fondo claro. La pestaña del navegador usa `assets/icons/favicon.png`. Se conservaron los archivos y sus nombres originales; los espacios en rutas HTML están codificados como `%20`.
+- La portada usa el logo transparente `assets/icons/logo_letras blancas.webp` sobre fondo oscuro; el encabezado usa `assets/icons/logo_letras negras.webp` sobre fondo claro. La pestaña del navegador usa `assets/icons/favicon.png`. Los PNG originales se conservan como respaldo; el sitio carga las versiones WebP; los espacios en rutas HTML están codificados como `%20`.
 - El logo anterior se conserva en `assets/img/brand/logo.png`. Para usar un SVG real, sube el archivo y cambia el `src` correspondiente. No se convirtió ninguna fotografía a SVG.
-- Las fotos originales se conservaron sin modificaciones y se renombraron por producto. Sube futuras imágenes `.webp`, `.png` o `.jpg` a su categoría y actualiza `image` en `products.js`.
-- La portada se conservó en `assets/img/social/portada.png`; los lineamientos en `assets/brand/lineamientos-de-marca.pdf`.
+- Las fotos originales PNG se conservan como respaldo. El sitio carga copias WebP con calidad 85 y resolución original; el menú y los logos usan WebP sin pérdida para mantener sus letras y transparencia. Sube futuras imágenes `.webp`, `.png` o `.jpg` a su categoría y actualiza `image` en `products.js`.
+- La portada se conservó en `assets/img/social/portada.webp`; los lineamientos en `assets/brand/lineamientos-de-marca.pdf`.
 - Las imágenes ausentes muestran un reemplazo de texto. Una petición a un archivo inexistente puede aparecer como 404 en las herramientas del navegador, pero no rompe la interfaz.
 
 ## Enlaces y WhatsApp
@@ -50,7 +50,7 @@ Edita `assets/js/config.js`:
 
 ## Menú y precios
 
-La página muestra una sola vista a la vez: **Ver menú** (imagen con zoom de 100% a 400%) o **Armar pedido** (productos por categoría). El pedido se revisa en un panel al pulsar la barra inferior. La imagen existente `assets/img/menu/menu.png` funciona en móvil sin depender de un lector PDF. El PDF de lineamientos es un documento de marca, no un menú.
+La página muestra una sola vista a la vez: **Ver menú** (imagen con zoom de 100% a 400%) o **Armar pedido** (productos por categoría). El pedido se revisa en un panel al pulsar la barra inferior. La imagen existente `assets/img/menu/menu.webp` funciona en móvil sin depender de un lector PDF. El PDF de lineamientos es un documento de marca, no un menú.
 
 Al armar el pedido se selecciona **Todos** por defecto. Los filtros aparecen en este orden: **Todos, Combos, Mini Hotcakes, Frappés**. El catálogo completo mantiene los combos al principio, con el mismo tamaño de fotos y estilo que las demás categorías; después aparecen mini hotcakes y frappés. El orden se controla en `CATEGORIES`. Tocar directamente una foto, sin texto superpuesto, abre un visor dentro de la página, con zoom de 100% a 300%, desplazamiento y cierre con el botón × o Escape. Ver una foto no agrega productos ni modifica el pedido.
 

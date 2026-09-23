@@ -50,26 +50,26 @@ const FAMILY_OPTIONS = [
   ...hotcakeOptions("hotcakes-2", "Mini hotcakes 2 · 15 piezas")
 ];
 
-// Mantén sincronizados estos precios y assets/img/menu/menu.png.
+// Mantén sincronizados estos precios y assets/img/menu/menu.webp.
 const PRODUCTS = [
-  { id: "FR-FRE", category: "frappes", name: "Frappé de Fresa", description: "Leche y crema batida a tu gusto.", price: 65, image: "../assets/img/products/frappes/fresa.png", available: true, options: FRAPPE_OPTIONS },
-  { id: "FR-MOK", category: "frappes", name: "Frappé de Moka", description: "Leche y crema batida a tu gusto.", price: 50, image: "../assets/img/products/frappes/moka.png", available: true, options: FRAPPE_OPTIONS },
-  { id: "FR-ORE", category: "frappes", name: "Frappé de Oreo", description: "Leche y crema batida a tu gusto.", price: 65, image: "../assets/img/products/frappes/oreo.png", available: true, options: FRAPPE_OPTIONS },
-  { id: "FR-CHO", category: "frappes", name: "Frappé de Chocolate", description: "Leche y crema batida a tu gusto.", price: 60, image: "../assets/img/products/frappes/chocolate.png", available: true, options: FRAPPE_OPTIONS },
-  { id: "FR-NUT", category: "frappes", name: "Frappé de Nutella", description: "Leche y crema batida a tu gusto.", price: 60, image: "../assets/img/products/frappes/nutella.png", available: true, options: FRAPPE_OPTIONS },
-  { id: "FR-CAP", category: "frappes", name: "Frappé de Capuchino", description: "Leche y crema batida a tu gusto.", price: 55, image: "../assets/img/products/frappes/capuchino.png", available: true, options: FRAPPE_OPTIONS },
-  { id: "HC-15", category: "hotcakes", name: "Mini hotcakes · 15 piezas", description: "Incluyen hasta 2 untables y 1 topping.", price: 50, image: "../assets/img/products/hotcakes/nutella-fresa.png", available: true, options: HOTCAKE_OPTIONS },
-  { id: "HC-25", category: "hotcakes", name: "Mini hotcakes · 25 piezas", description: "Incluyen hasta 2 untables y 1 topping.", price: 60, image: "../assets/img/products/hotcakes/nutella-fresa.png", available: true, options: HOTCAKE_OPTIONS },
-  { id: "HC-35", category: "hotcakes", name: "Mini hotcakes · 35 piezas", description: "Incluyen hasta 2 untables y 1 topping.", price: 70, image: "../assets/img/products/hotcakes/nutella-fresa.png", available: true, options: HOTCAKE_OPTIONS },
-  { id: "CO-PAR", category: "combos", name: "Combo pareja", description: "2 frappés de Nutella.", price: 110, image: "../assets/img/combos/pareja.png", available: true, options: [
+  { id: "FR-FRE", category: "frappes", name: "Frappé de Fresa", description: "Leche y crema batida a tu gusto.", price: 65, image: "../assets/img/products/frappes/fresa.webp", available: true, options: FRAPPE_OPTIONS },
+  { id: "FR-MOK", category: "frappes", name: "Frappé de Moka", description: "Leche y crema batida a tu gusto.", price: 50, image: "../assets/img/products/frappes/moka.webp", available: true, options: FRAPPE_OPTIONS },
+  { id: "FR-ORE", category: "frappes", name: "Frappé de Oreo", description: "Leche y crema batida a tu gusto.", price: 65, image: "../assets/img/products/frappes/oreo.webp", available: true, options: FRAPPE_OPTIONS },
+  { id: "FR-CHO", category: "frappes", name: "Frappé de Chocolate", description: "Leche y crema batida a tu gusto.", price: 60, image: "../assets/img/products/frappes/chocolate.webp", available: true, options: FRAPPE_OPTIONS },
+  { id: "FR-NUT", category: "frappes", name: "Frappé de Nutella", description: "Leche y crema batida a tu gusto.", price: 60, image: "../assets/img/products/frappes/nutella.webp", available: true, options: FRAPPE_OPTIONS },
+  { id: "FR-CAP", category: "frappes", name: "Frappé de Capuchino", description: "Leche y crema batida a tu gusto.", price: 55, image: "../assets/img/products/frappes/capuchino.webp", available: true, options: FRAPPE_OPTIONS },
+  { id: "HC-15", category: "hotcakes", name: "Mini hotcakes · 15 piezas", description: "Incluyen hasta 2 untables y 1 topping.", price: 50, image: "../assets/img/products/hotcakes/nutella-fresa.webp", available: true, options: HOTCAKE_OPTIONS },
+  { id: "HC-25", category: "hotcakes", name: "Mini hotcakes · 25 piezas", description: "Incluyen hasta 2 untables y 1 topping.", price: 60, image: "../assets/img/products/hotcakes/nutella-fresa.webp", available: true, options: HOTCAKE_OPTIONS },
+  { id: "HC-35", category: "hotcakes", name: "Mini hotcakes · 35 piezas", description: "Incluyen hasta 2 untables y 1 topping.", price: 70, image: "../assets/img/products/hotcakes/nutella-fresa.webp", available: true, options: HOTCAKE_OPTIONS },
+  { id: "CO-PAR", category: "combos", name: "Combo pareja", description: "2 frappés de Nutella.", price: 110, image: "../assets/img/combos/pareja.webp", available: true, options: [
     ...frappeOptions("drink-1", "Frappé de Nutella 1", true),
     ...frappeOptions("drink-2", "Frappé de Nutella 2", true)
   ] },
-  { id: "CO-ANT", category: "combos", name: "Pa’ el antojo", description: "1 frappé de Nutella + 15 mini hotcakes con Nutella y fresa.", price: 100, image: "../assets/img/combos/pa-el-antojo.png", available: true, options: [
+  { id: "CO-ANT", category: "combos", name: "Pa’ el antojo", description: "1 frappé de Nutella + 15 mini hotcakes con Nutella y fresa.", price: 100, image: "../assets/img/combos/pa-el-antojo.webp", available: true, options: [
     ...frappeOptions("drink", "Frappé de Nutella", true),
     ...hotcakeOptions("hotcakes", "Mini hotcakes · 15 piezas", true)
   ] },
-  { id: "CO-FAM", category: "combos", name: "Combo familiar", description: "4 frappés + 2 órdenes de 15 mini hotcakes.", price: 250, image: "../assets/img/combos/familiar.png", available: true, options: FAMILY_OPTIONS }
+  { id: "CO-FAM", category: "combos", name: "Combo familiar", description: "4 frappés + 2 órdenes de 15 mini hotcakes.", price: 250, image: "../assets/img/combos/familiar.webp", available: true, options: FAMILY_OPTIONS }
 ];
 
 /* Para agregar productos, copia una entrada y usa un id único.
