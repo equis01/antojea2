@@ -1,0 +1,22 @@
+"use strict";
+const offers = document.getElementById("promotion-list");
+PRODUCTS.filter(product => product.category === "combos").forEach(product => {
+  const section = document.createElement("section");
+  section.className = "promotion-section";
+  const image = document.createElement("img");
+  image.src = product.image;
+  image.alt = product.name;
+  image.loading = "lazy";
+  image.width = 180;
+  image.height = 180;
+  image.addEventListener("error", () => { image.hidden = true; });
+  const copy = document.createElement("div");
+  const title = document.createElement("h2"); title.textContent = product.name;
+  const description = document.createElement("p"); description.textContent = product.description;
+  const price = document.createElement("p"); price.textContent = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(product.price);
+  const link = document.createElement("a"); link.className = "button";
+  link.textContent = product.available ? "Elegir mi combo" : "Agotado";
+  if (product.available) link.href = Site.url(CONFIG.pages.menu + "#catalogo");
+  else link.setAttribute("aria-disabled", "true");
+  copy.append(title, description, price, link); section.append(image, copy); offers.append(section);
+});

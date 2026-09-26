@@ -16,6 +16,193 @@ let returnToCart = false;
 let selectedCategory = "all";
 let locationRequest = 0;
 let photoZoom = 100;
+let requestedSchedule = "";
+let savedCartSnapshot = "";
+let pendingLocation = null;
+let lastAddressSearch = "";
+
+function previewAddress(result) {
+  pendingLocation = { latitude: result.latitude, longitude: result.longitude };
+  document.getElementById("confirm-location-map").hidden = false;
+  document.getElementById("confirm-location-map").src = Site.mapPreviewUrl(pendingLocation);
+  document.getElementById("confirm-location-coordinates").textContent = `${result.label}. Punto aproximado: revisa el número y la calle antes de confirmar.`;
+  document.getElementById("confirm-location-yes").disabled = false;
+}
+
+async function searchWrittenAddress(force = false) {
+  const address = order.address.trim();
+  if (order.fulfillment !== "delivery" || address.length < 5 || !cartDialog.open || (!force && address === lastAddressSearch)) return;
+  lastAddressSearch = address;
+  clearLocation();
+  const requestId = locationRequest;
+  renderLocation(true, "Buscando la dirección en Querétaro, México…");
+  try {
+    const results = await AddressSearch.find(address);
+    if (requestId !== locationRequest || order.fulfillment !== "delivery" || order.address.trim() !== address || !cartDialog.open) return;
+    if (!results.length) {
+      renderLocation(false, "No encontramos una dirección clara en Querétaro, México. Revisa calle y colonia o comparte tu ubicación por WhatsApp al confirmar el pedido.");
+      return;
+    }
+    renderLocation(false, "Revisa y confirma la dirección encontrada antes de enviar.");
+    const list = document.getElementById("address-results");
+    list.replaceChildren();
+    document.getElementById("confirm-location-map").removeAttribute("src");
+    document.getElementById("confirm-location-map").hidden = true;
+    document.getElementById("confirm-location-yes").disabled = true;
+    document.getElementById("confirm-location-coordinates").textContent = "Elige tu dirección para revisar el punto en el mapa.";
+    results.forEach(result => {
+      const button = element("button", "address-result", result.label);
+      button.type = "button";
+      button.setAttribute("aria-pressed", "false");
+      button.addEventListener("click", () => {
+        list.querySelectorAll("button").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+        previewAddress(result);
+      });
+      list.append(button);
+    });
+    if (results.length === 1) list.firstElementChild.click();
+    showDialog(document.getElementById("location-confirm-dialog"));
+  } catch {
+    if (requestId !== locationRequest || !cartDialog.open) return;
+    renderLocation(false, "No se pudo buscar la dirección. Puedes reintentar o continuar y compartir tu ubicación por WhatsApp al confirmar el pedido.");
+  }
+}
+
+function saveCart() {
+  const items = [...order.items.values()].map(line => [line.product.id, line.quantity, line.selectedOptions.map(group => [group.id, group.values.map(value => [value.id, value.quantity])])]);
+  const snapshot = JSON.stringify(items);
+  if (snapshot === savedCartSnapshot) return;
+  savedCartSnapshot = snapshot;
+  const saved = CartCookies.save(items);
+  const status = document.getElementById("cart-persistence");
+  status.textContent = saved ? "Tu carrito se guarda durante 7 días en este navegador." : "El carrito se conserva solo mientras esta página esté abierta: el guardado está desactivado, bloqueado o el pedido es demasiado grande.";
+}
+
+function restoreCart() {
+  let skipped = false;
+  CartCookies.load().forEach(item => {
+    try {
+      const [id, quantity, stored] = item;
+      const product = PRODUCTS.find(p => p.id === id && p.available);
+      if (!product || !Number.isInteger(quantity) || quantity < 1 || quantity > 99 || !Array.isArray(stored) || stored.length !== product.options.length) throw new Error();
+      const selectedOptions = product.options.map(group => {
+        const matches = stored.filter(s => s[0] === group.id);
+        if (matches.length !== 1 || !Array.isArray(matches[0][1])) throw new Error();
+        const values = matches[0][1].map(([choiceId, amount]) => {
+          if (!group.choices?.some(c => c.id === choiceId) || !Number.isInteger(amount) || amount < 1 || amount > 99 || (group.type !== "quantity" && amount !== 1)) throw new Error();
+          return { id: choiceId, quantity: amount };
+        });
+        if (new Set(values.map(v => v.id)).size !== values.length || (group.type === "fixed" && values.length) || (group.type === "single" && (values.length > 1 || (group.required && values.length !== 1))) || (group.type === "multiple" && values.length > group.max)) throw new Error();
+        return { id: group.id, values };
+      });
+      const key = `${product.id}:${JSON.stringify(selectedOptions)}`;
+      order.items.set(key, { product, quantity, selectedOptions });
+    } catch { skipped = true; }
+  });
+  if (order.items.size || skipped) orderStatus.textContent = skipped
+    ? "Revisamos tu carrito. Se retiraron productos agotados o personalizaciones que cambiaron; verifica los precios actuales."
+    : "Recuperamos tu carrito con los precios actuales. Revisa tu pedido antes de enviarlo.";
+}
+
+function shippingEstimate(location) {
+  if (!location) return null;
+  const origin = CONFIG.pickup.location;
+  const rad = value => value * Math.PI / 180;
+  const dLat = rad(location.latitude - origin.latitude), dLon = rad(location.longitude - origin.longitude);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(origin.latitude)) * Math.cos(rad(location.latitude)) * Math.sin(dLon / 2) ** 2;
+  const km = 6371 * 2 * Math.atan2(Math.sqrt(Math.max(0, a)), Math.sqrt(Math.max(0, 1 - a)));
+  const rate = CONFIG.shippingEstimate;
+  return { km, outside: km > rate.maxKm + 1e-6, amount: km > rate.maxKm + 1e-6 ? null : km <= rate.freeRadiusKm + 1e-6 ? 0 : rate.flatRate };
+}
+
+function renderShippingEstimate() {
+  const box = document.getElementById("shipping-estimate");
+  const estimate = order.fulfillment === "delivery" ? shippingEstimate(order.location) : null;
+  box.hidden = !estimate;
+  if (!estimate) return;
+  box.textContent = `Distancia aproximada: ${estimate.km.toFixed(2)} km en línea recta. ` + (estimate.outside
+    ? "A más de 3 km revisaremos la cobertura; el envío podría costar más o no estar disponible."
+    : estimate.amount === null ? "Costo de envío por confirmar." : `Envío estimado: ${money.format(estimate.amount)}. No incluido en el subtotal; tarifa y ruta por confirmar.`);
+}
+
+function renderPayment() {
+  const method = document.getElementById("payment-method").value;
+  document.getElementById("transfer-details").hidden = method !== "transfer";
+  const messages = {
+    cash: "Si puedes, prepara el importe exacto. Si necesitas cambio, indícanos con cuánto pagarás en observaciones para llevarlo preparado.",
+    transfer: "Consulta los datos bancarios y espera la confirmación del total.",
+    card: "Por el momento, solo pagos presenciales sin contacto (contactless), con tarjeta o dispositivo compatible. Confirma la disponibilidad del cobro al recibir o recoger.",
+    "": "Selecciona cómo pagarás al confirmar tu pedido."
+  };
+  document.getElementById("payment-help").textContent = messages[method];
+}
+
+function openPickup() {
+  document.getElementById("pickup-address").textContent = CONFIG.pickup.address;
+  document.getElementById("pickup-map").src = Site.mapPreviewUrl(CONFIG.pickup.location);
+  const directions = new URL(CONFIG.mapsDirectionsUrl);
+  directions.searchParams.set("api", "1");
+  directions.searchParams.set("destination", `${CONFIG.pickup.location.latitude},${CONFIG.pickup.location.longitude}`);
+  Site.bindLink(document.getElementById("pickup-directions"), directions.href);
+  showDialog(document.getElementById("pickup-dialog"));
+}
+
+function setupPayment() {
+  const data = CONFIG.payments.transfer;
+  const list = document.getElementById("transfer-data");
+  [["Banco", "bank"], ["CLABE", "clabe"], ["Tarjeta", "card"], ["Cuenta", "account"], ["Nombre", "name"]].forEach(([label, key]) => {
+    const row = element("div", "transfer-row");
+    const value = element("dd", "", data[key]);
+    row.append(element("dt", "", label), value);
+    if (["clabe", "card", "account"].includes(key)) {
+      const copy = element("button", "text-button", "Copiar");
+      copy.type = "button";
+      copy.setAttribute("aria-label", `Copiar ${label}`);
+      copy.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(data[key]);
+          document.getElementById("copy-status").textContent = `${label} copiada.`;
+        } catch { document.getElementById("copy-status").textContent = "Selecciona el número y cópialo manualmente."; }
+      });
+      row.append(copy);
+    }
+    list.append(row);
+  });
+  document.getElementById("payment-method").addEventListener("change", () => { renderPayment(); updateOrderLink(); });
+  document.getElementById("open-pickup").addEventListener("click", openPickup);
+  renderPayment();
+}
+
+function orderPayload() {
+  return {
+    customer: { name: document.getElementById("customer-name").value.trim(), phone: document.getElementById("customer-phone").value.trim() },
+    fulfillment: order.fulfillment, scheduledFor: requestedSchedule,
+    paymentMethod: document.getElementById("payment-method").value,
+    address: order.fulfillment === "delivery" ? order.address : "",
+    location: order.fulfillment === "delivery" ? order.location : null,
+    notes: order.notes,
+    items: [...order.items.values()].map(line => ({ productId: line.product.id, quantity: line.quantity, selectedOptions: line.selectedOptions }))
+  };
+}
+
+function refreshSchedule() {
+  const select = document.getElementById("order-schedule");
+  const state = Schedule.options();
+  const previous = requestedSchedule;
+  if (!state.options.some(option => option.value === requestedSchedule)) requestedSchedule = state.options[0]?.value || "";
+  select.replaceChildren(...state.options.map(item => {
+    const option = element("option", "", item.label);
+    option.value = item.value;
+    return option;
+  }));
+  select.value = requestedSchedule;
+  const changed = previous && previous !== requestedSchedule;
+  document.getElementById("schedule-note").textContent = changed
+    ? "El horario anterior ya pasó. Revisa la nueva fecha antes de enviar."
+    : state.open ? (order.fulfillment === "delivery" ? "Lo antes posible: entrega a domicilio en aproximadamente 45 minutos. Horarios sujetos a confirmación." : "Lo antes posible: te confirmamos cuándo estará listo para recoger.")
+      : "Estamos fuera de horario. Elige un horario disponible en los próximos 5 días; sujeto a confirmación.";
+  return Boolean(changed);
+}
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -30,6 +217,12 @@ function showDialog(dialog) {
 }
 
 function closeDialog(dialog) {
+  if (dialog === cartDialog) { AddressSearch.cancel(); locationRequest += 1; renderLocation(false); }
+  if (dialog.id === "location-confirm-dialog") document.getElementById("confirm-location-map").removeAttribute("src");
+  if (dialog.id === "location-confirm-dialog" && pendingLocation) {
+    pendingLocation = null;
+    renderLocation(false, "Puedes continuar. Al confirmar tu pedido por WhatsApp, comparte la ubicación correcta.");
+  }
   const restoreCart = dialog === customizer && returnToCart;
   if (dialog === customizer) returnToCart = false;
   dialog.close();
@@ -55,6 +248,7 @@ function renderProducts(category = selectedCategory) {
   productList.replaceChildren();
   visible.forEach(product => {
     const article = element("article", "product");
+    if (product.category === "combos") article.classList.add("product--combo");
     const media = element("div", "product-media");
     media.dataset.imageFrame = "";
     const img = element("img");
@@ -331,6 +525,12 @@ function buildOrderMessage() {
   // Saltos reales CRLF, codificados una sola vez por Site.whatsapp().
   const newline = "\r\n";
   const blocks = [`Hola, ${CONFIG.business.name}. Mi pedido:`];
+  if (order.items.size) {
+    const payload = orderPayload();
+    blocks.push(`Folio: ${Orders.identify(payload)}`);
+    if (payload.customer.name) blocks.push(`Nombre: ${payload.customer.name}`);
+    if (payload.customer.phone) blocks.push(`Teléfono: ${payload.customer.phone}`);
+  }
   order.items.forEach(line => {
     const sections = optionSections(line);
     const details = [...sections].map(([title, values]) => [
@@ -342,8 +542,18 @@ function buildOrderMessage() {
       details,
       `Importe: ${money.format(unitPrice(line.product, line.selectedOptions) * line.quantity)}`
     ].filter(Boolean).join(newline));
+    const estimate = shippingEstimate(order.location);
+    if (estimate) blocks.push(`Distancia aproximada en línea recta: ${estimate.km.toFixed(2)} km.${newline}` + (estimate.outside
+      ? "Más de 3 km: revisar costo de envío y cobertura."
+      : `Envío estimado: ${money.format(estimate.amount)}; sujeto a confirmación.`));
+    else blocks.push("Compartiré mi ubicación correcta por WhatsApp al confirmar el pedido.");
   });
   blocks.push(`*Subtotal con extras: ${money.format(getSubtotal())}*`);
+  const payment = document.getElementById("payment-method");
+  if (payment.value) blocks.push(`*Método de pago*${newline}${payment.selectedOptions[0].textContent}`);
+  const scheduleOption = Schedule.options().options.find(option => option.value === requestedSchedule);
+  if (scheduleOption) blocks.push(`*Cuándo*${newline}${scheduleOption.label}${newline}Horario de Querétaro · sujeto a confirmación.`);
+  if (requestedSchedule === "now" && order.fulfillment === "delivery") blocks.push("Entrega a domicilio: aproximadamente 45 minutos, por confirmar.");
   if (order.fulfillment === "pickup") {
     blocks.push("*Entrega: recoger*");
   } else {
@@ -359,7 +569,12 @@ function buildOrderMessage() {
 }
 
 function updateOrderLink() {
+  saveCart();
+  if (!order.items.size) { Orders.snapshot = ""; Orders.currentId = ""; }
   const message = buildOrderMessage();
+  if (document.getElementById("order-folio").textContent !== Orders.currentId) document.getElementById("folio-copy-status").textContent = "";
+  document.getElementById("order-reference").hidden = !order.items.size;
+  document.getElementById("order-folio").textContent = order.items.size ? Orders.currentId : "";
   Site.bindLink(document.getElementById("send-list"), order.items.size ? Site.whatsapp(message) : "");
   const backup = document.getElementById("send-backup");
   const backupUrl = order.items.size && CONFIG.whatsappBackup !== CONFIG.whatsapp ? Site.whatsapp(message, CONFIG.whatsappBackup) : "";
@@ -384,18 +599,23 @@ function renderLocation(busy = false, message = "") {
     if (preview.getAttribute("src") !== previewUrl) preview.src = previewUrl;
   } else preview.removeAttribute("src");
   document.getElementById("location-status").textContent = message;
+  renderShippingEstimate();
   updateOrderLink();
 }
 
 function clearLocation(message = "") {
+  AddressSearch.cancel();
   // Invalida respuestas pendientes sin reactivar una ubicación que el usuario quitó.
   locationRequest += 1;
   order.location = null;
+  pendingLocation = null;
   renderLocation(false, message);
 }
 
 function requestLocation() {
   if (order.fulfillment !== "delivery") return;
+  AddressSearch.cancel();
+  lastAddressSearch = order.address.trim();
   const requestId = ++locationRequest;
   if (!window.isSecureContext) {
     renderLocation(false, "Para usar tu ubicación, abre el sitio con HTTPS. También puedes escribir la dirección.");
@@ -421,9 +641,15 @@ function requestLocation() {
       if (requestId !== locationRequest) return;
       const { latitude, longitude, accuracy } = position.coords;
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) { failed({ code: 2 }); return; }
-      order.location = { latitude, longitude, accuracy };
+      pendingLocation = { latitude, longitude, accuracy };
+      document.getElementById("address-results").replaceChildren();
+      document.getElementById("confirm-location-yes").disabled = false;
+      document.getElementById("confirm-location-map").hidden = false;
       const precision = Number.isFinite(accuracy) ? ` Precisión aproximada: ${Math.round(accuracy)} m.` : "";
-      renderLocation(false, `Ubicación agregada.${precision} Revisa el punto antes de enviar.`);
+      renderLocation(false, `Ubicación obtenida.${precision} Confirma que el punto sea correcto.`);
+      document.getElementById("confirm-location-map").src = Site.mapPreviewUrl(pendingLocation);
+      document.getElementById("confirm-location-coordinates").textContent = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}.${precision}`;
+      showDialog(document.getElementById("location-confirm-dialog"));
     }, failed, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
   } catch { failed({ code: 2 }); }
 }
@@ -441,6 +667,8 @@ function setFulfillment(value) {
     : "Envío y disponibilidad por confirmar.";
   if (pickup) clearLocation();
   else updateOrderLink();
+  refreshSchedule();
+  updateOrderLink();
 }
 
 function changeQuantity(key, delta) {
@@ -527,13 +755,13 @@ function renderPromotionTerms() {
   if (!terms.length) return;
   const list = element("ul");
   terms.forEach(term => list.append(element("li", "", term)));
-  document.getElementById("promotion-terms").replaceChildren(list);
+  document.getElementById("promotion-terms")?.replaceChildren(list);
 }
 
 document.querySelectorAll("[data-close]").forEach(button => {
   button.addEventListener("click", () => closeDialog(document.getElementById(button.dataset.close)));
 });
-document.querySelectorAll("dialog").forEach(dialog => {
+document.querySelectorAll("dialog:not(#contact-dialog)").forEach(dialog => {
   dialog.addEventListener("cancel", event => { event.preventDefault(); closeDialog(dialog); });
   dialog.addEventListener("close", () => {
     document.body.classList.toggle("dialog-open", Boolean(document.querySelector("dialog[open]")));
@@ -547,9 +775,7 @@ customForm.addEventListener("invalid", event => {
   let parent = event.target.parentElement;
   while (parent && parent !== customForm) { if (parent.tagName === "DETAILS") parent.open = true; parent = parent.parentElement; }
 }, true);
-document.getElementById("review-order").addEventListener("click", () => showDialog(cartDialog));
-document.getElementById("open-contact").addEventListener("click", () => showDialog(document.getElementById("contact-dialog")));
-document.getElementById("open-contact").hidden = false;
+document.getElementById("review-order").addEventListener("click", () => { refreshSchedule(); updateOrderLink(); showDialog(cartDialog); });
 document.querySelectorAll("[data-contact-number]").forEach(node => {
   const number = CONFIG[node.dataset.contactNumber] || "";
   node.textContent = /^52\d{10}$/.test(number) ? `+52 ${number.slice(2).replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3")}` : number;
@@ -565,6 +791,11 @@ document.getElementById("clear-list").addEventListener("click", () => {
   order.address = "";
   document.getElementById("order-notes").value = "";
   document.getElementById("delivery-address").value = "";
+  requestedSchedule = "";
+  document.getElementById("payment-method").value = "";
+  renderPayment();
+  refreshSchedule();
+  document.getElementById("registration-status").hidden = true;
   clearLocation();
   setFulfillment("delivery");
   renderDraft();
@@ -577,20 +808,73 @@ document.getElementById("order-notes").addEventListener("input", event => {
 });
 document.getElementById("delivery-address").addEventListener("input", event => {
   order.address = event.target.value;
-  updateOrderLink();
+  lastAddressSearch = "";
+  clearLocation("Dirección actualizada. La buscaremos al pasar al método de pago.");
 });
+document.getElementById("payment-method").addEventListener("focus", () => { void searchWrittenAddress(); });
+document.getElementById("search-address").addEventListener("click", () => { void searchWrittenAddress(true); });
 document.getElementById("use-location").addEventListener("click", requestLocation);
+document.getElementById("copy-folio").addEventListener("click", async () => {
+  if (!order.items.size) return;
+  try {
+    await navigator.clipboard.writeText(Orders.currentId);
+    document.getElementById("folio-copy-status").textContent = "Folio copiado.";
+  } catch { document.getElementById("folio-copy-status").textContent = "Selecciona el folio y cópialo manualmente."; }
+});
+document.getElementById("confirm-location-yes").addEventListener("click", () => {
+  if (!pendingLocation) return;
+  order.location = pendingLocation;
+  pendingLocation = null;
+  closeDialog(document.getElementById("location-confirm-dialog"));
+  renderLocation(false, "Ubicación confirmada. El enlace con este punto se incluirá en tu pedido.");
+});
 document.querySelectorAll('[name="fulfillment"]').forEach(input => {
-  input.addEventListener("change", () => setFulfillment(input.value));
+  input.addEventListener("change", () => { setFulfillment(input.value); if (input.value === "pickup") openPickup(); });
 });
 document.getElementById("remove-location").addEventListener("click", () => clearLocation("Ubicación retirada del pedido."));
 document.querySelectorAll("[data-view]").forEach(button => {
   button.addEventListener("click", () => setView(button.dataset.view));
 });
 document.getElementById("view-switch").hidden = false;
+document.getElementById("order-schedule").addEventListener("change", event => {
+  requestedSchedule = event.target.value;
+  updateOrderLink();
+});
+["send-list", "send-backup"].forEach(id => {
+  document.getElementById(id).addEventListener("click", event => {
+    const changed = refreshSchedule();
+    updateOrderLink();
+    if (changed) {
+      event.preventDefault();
+      document.getElementById("order-schedule").focus();
+      return;
+    }
+    if (!order.items.size || document.getElementById("order-website").value) { event.preventDefault(); return; }
+    if (!document.getElementById("payment-method").reportValidity()) { event.preventDefault(); return; }
+    if (Orders.enabled()) {
+      const phone = document.getElementById("customer-phone");
+      const normalizedPhone = phone.value.trim().replace(/[\s()+-]/g, "");
+      phone.setCustomValidity(normalizedPhone && !/^\d{10,15}$/.test(normalizedPhone) ? "Escribe un teléfono de 10 a 15 dígitos, o deja el campo vacío." : "");
+      if (!phone.reportValidity()) { event.preventDefault(); return; }
+      const payload = orderPayload();
+      void Orders.register(payload, Orders.identify(payload));
+    }
+  });
+});
+document.getElementById("customer-fields").hidden = !Orders.enabled();
+["customer-name", "customer-phone"].forEach(id => document.getElementById(id).addEventListener("input", updateOrderLink));
+refreshSchedule();
+setupPayment();
+restoreCart();
 setupViewer();
 renderCategories();
 renderPromotionTerms();
 renderDraft();
-if (location.hash === "#catalogo") setView("order");
-if (location.hash === "#promociones") document.querySelector("#promociones details").open = true;
+setView("order");
+if (location.hash === "#promociones") {
+  window.addEventListener("load", () => {
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduced) window.scrollTo({ top: 0, behavior: "instant" });
+    setTimeout(() => document.getElementById("promociones").scrollIntoView({ behavior: reduced ? "instant" : "smooth" }), 1600);
+  }, { once: true });
+}

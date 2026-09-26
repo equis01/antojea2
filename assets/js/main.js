@@ -113,4 +113,37 @@ document.querySelectorAll("a[href]").forEach(anchor => Site.setLinkTarget(anchor
 document.querySelectorAll("img[data-fallback]").forEach(Site.prepareImage);
 document.querySelectorAll("[data-business-hours]").forEach(node => { node.textContent = CONFIG.business.hours; });
 document.querySelectorAll("[data-service-notice]").forEach(node => { node.textContent = CONFIG.business.serviceNotice; });
-
+const navigation = document.querySelector(".site-navigation");
+const cookieStatus = document.getElementById("cookie-choice-status");
+function showCookieChoice() {
+  if (cookieStatus) cookieStatus.textContent = CartCookies.enabled() ? "Guardado del carrito activado." : "Guardado del carrito desactivado.";
+}
+document.getElementById("disable-cart-cookies")?.addEventListener("click", () => { CartCookies.disable(); showCookieChoice(); });
+document.getElementById("enable-cart-cookies")?.addEventListener("click", () => { CartCookies.enable(); showCookieChoice(); });
+showCookieChoice();
+const contactDialog = document.getElementById("contact-dialog");
+const contactTrigger = document.getElementById("open-contact");
+contactTrigger.hidden = false;
+contactTrigger.setAttribute("aria-haspopup", "dialog");
+contactTrigger.setAttribute("aria-controls", "contact-dialog");
+contactTrigger.addEventListener("click", () => {
+  navigation.open = false;
+  contactDialog.showModal();
+  document.body.classList.add("dialog-open");
+});
+function closeContact() {
+  contactDialog.close();
+  document.body.classList.toggle("dialog-open", Boolean(document.querySelector("dialog[open]")));
+  navigation.querySelector("summary").focus();
+}
+contactDialog.querySelector("[data-contact-close]").addEventListener("click", closeContact);
+contactDialog.addEventListener("cancel", event => { event.preventDefault(); closeContact(); });
+document.addEventListener("click", event => { if (!navigation.contains(event.target)) navigation.open = false; });
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && navigation.open) { navigation.open = false; navigation.querySelector("summary").focus(); }
+});
+navigation.querySelectorAll("a").forEach(link => link.addEventListener("click", () => { navigation.open = false; }));
+document.querySelectorAll("[data-contact-number]").forEach(node => {
+  const number = CONFIG[node.dataset.contactNumber] || "";
+  node.textContent = /^52\d{10}$/.test(number) ? `+52 ${number.slice(2).replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3")}` : number;
+});

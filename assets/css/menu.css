@@ -19,6 +19,8 @@
 .categories button { flex: 1 0 auto; padding: 8px 10px; background: transparent; border: 1px solid var(--line); border-radius: 2px; font-size: .8rem; }
 .categories button[aria-pressed="true"] { background: var(--carbon); border-color: var(--carbon); color: var(--cream); }
 .product-grid { display: grid; column-gap: 32px; }
+.product--combo { border-top: 3px solid var(--orange); background: #f3e6d5; padding: 16px; }
+.product--combo .add-button { background: var(--orange); border-color: var(--orange); }
 .product { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 16px; padding-block: 16px; border-bottom: 1px solid var(--line); }
 .product-media img { aspect-ratio: 1; width: 100%; object-fit: cover; }
 .photo-trigger { display: block; position: relative; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
@@ -69,6 +71,10 @@ body.dialog-open { overflow: hidden; }
 #custom-quantity { display: block; margin-top: 6px; }
 .form-error { color: #9d2d0b; font-size: .85rem; margin: 0; }
 .draft-items { list-style: none; padding: 0; margin: 0; }
+.order-reference { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.order-reference p { margin-bottom: 8px; }
+#order-folio { display: block; font-size: .95rem; letter-spacing: .03em; overflow-wrap: anywhere; user-select: all; }
+.order-reference .muted { font-size: .75rem; margin-top: 8px; }
 .draft-items > li { border-bottom: 1px solid var(--line); padding-block: 16px; }
 .draft-heading, .draft-controls, .subtotal { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .draft-heading { align-items: flex-start; }
@@ -92,6 +98,20 @@ body.dialog-open { overflow: hidden; }
 .fulfillment-choice legend { font-size: .9rem; font-weight: 700; margin-bottom: 8px; }
 #cart-details .fulfillment-choice label { display: flex; align-items: center; gap: 10px; margin: 0; min-height: 44px; }
 .fulfillment-choice input { width: 18px; height: 18px; margin: 0; accent-color: var(--carbon); }
+#order-schedule { width: 100%; min-height: 46px; padding: 10px; border: 1px solid var(--line); background: var(--cream); color: var(--carbon); }
+#schedule-note { font-size: .75rem; margin-top: 10px; }
+#payment-method { width: 100%; min-height: 46px; padding: 10px; border: 1px solid var(--line); background: var(--cream); color: var(--carbon); }
+#payment-help, .transfer-details .muted { font-size: .75rem; margin-top: 10px; }
+.address-result { display: block; width: 100%; margin-block: 8px; padding: 12px; text-align: left; border: 1px solid var(--line); background: transparent; font-size: .85rem; }
+.address-result[aria-pressed="true"] { border-color: var(--orange); background: #f3e6d5; }
+.transfer-details { margin-block: 20px; padding: 16px; border: 1px solid var(--line); }
+.transfer-details h3 { color: var(--orange); }
+.transfer-row { padding-block: 10px; border-bottom: 1px solid var(--line); }
+.transfer-row dt { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; }
+.transfer-row dd { margin: 4px 0; font-weight: 700; overflow-wrap: anywhere; user-select: all; }
+#customer-fields input { width: 100%; min-height: 44px; padding: 10px; border: 1px solid var(--line); background: var(--cream); }
+#customer-fields .muted { font-size: .75rem; margin-top: 10px; }
+.bot-field { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .pickup-details { border-block: 1px solid var(--line); padding-block: 16px; font-size: .85rem; }
 .subtotal { margin-bottom: 8px; }
 .cart-actions .muted { font-size: .75rem; margin-bottom: 12px; }
@@ -114,6 +134,8 @@ body.dialog-open { overflow: hidden; }
 #photo-canvas { width: 100%; margin-inline: auto; }
 #product-photo { display: block; width: 100%; max-width: none; height: auto; }
 @media (min-width: 760px) {
+  .product--combo { border-top: 3px solid var(--orange); background: #f3e6d5; padding: 16px; grid-template-columns: 110px minmax(0, 1fr); }
+  .product--combo .add-button { background: var(--orange); border-color: var(--orange); }
   .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .menu-intro { padding-top: 40px; }
 }

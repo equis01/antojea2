@@ -12,21 +12,30 @@
   <link rel="stylesheet" href="../assets/css/menu.css">
   <script defer src="../assets/js/config.js"></script>
   <script defer src="../assets/js/products.js"></script>
+  <script defer src="../assets/js/cart-cookies.js"></script>
   <script defer src="../assets/js/main.js"></script>
+  <script defer src="../assets/js/schedule.js"></script>
+  <script defer src="../assets/js/orders.js"></script>
+  <script defer src="../assets/js/address-search.js"></script>
   <script defer src="../assets/js/menu.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
-  <header class="site-header"><nav class="header-inner wrap" aria-label="Principal"><a class="wordmark" data-link="home" href="../" aria-label="Antojea2, inicio" data-image-frame><img src="../assets/icons/logo_letras%20negras.webp" alt="" width="128" height="50" data-fallback><span class="brand-fallback" hidden>Antojea<span>2</span></span></a><button type="button" id="open-contact" class="text-link contact-trigger" aria-haspopup="dialog" aria-controls="contact-dialog" hidden>Contacto</button></nav></header>
+  <header class="site-header"><div class="header-inner wrap">
+    <a class="wordmark" data-link="home" href=".././" aria-label="Antojea2, inicio" data-image-frame><img src="../assets/icons/logo_letras%20negras.webp" alt="" width="128" height="50" data-fallback><span class="brand-fallback" hidden>Antojea<span>2</span></span></a>
+    <details class="site-navigation"><summary aria-label="Menú de navegación"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Menú</span></summary>
+      <nav aria-label="Principal"><a data-link="home" href=".././">Inicio</a><a data-link="menu" href="../menu/">Ver el menú y pedir</a><button type="button" id="open-contact" hidden>Contacto</button><a data-link="promotions" href="../promociones/">Promociones</a></nav>
+    </details>
+  </div></header>
   <main id="contenido" class="wrap menu-main">
-    <header class="menu-intro"><h1>¿Qué se te antoja?</h1><p>Precios en MXN · Vigentes hasta nuevo aviso.</p><p class="business-hours"><strong>Horario</strong><span data-business-hours>Miércoles a domingo · 5:00 p. m. a 10:00 p. m.</span></p><p class="service-notice" data-service-notice>Por el momento, solo envío a domicilio o recoger.</p></header>
+    <header class="menu-intro"><h1>¿Qué se te antoja?</h1><p>Precios en MXN · Vigentes hasta nuevo aviso.</p><p class="business-hours"><strong>Horario</strong><span data-business-hours>Miércoles a domingo · 4:30 p. m. a 10:30 p. m.</span></p><p class="service-notice" data-service-notice>Por el momento, solo envío a domicilio o recoger.</p></header>
     <nav class="view-switch" aria-label="Elige cómo consultar el menú" id="view-switch" hidden>
-      <button type="button" data-view="menu" aria-pressed="true" aria-controls="menu-view">Ver menú</button>
-      <button type="button" data-view="order" aria-pressed="false" aria-controls="catalogo">Armar pedido</button>
+      <button type="button" data-view="menu" aria-pressed="false" aria-controls="menu-view">Ver menú</button>
+      <button type="button" data-view="order" aria-pressed="true" aria-controls="catalogo">Armar pedido</button>
     </nav>
-    <section id="menu-view" aria-label="Menú en imagen" class="menu-viewer">
+    <section id="menu-view" aria-label="Menú en imagen" class="menu-viewer" hidden>
       <div class="viewer-toolbar" aria-label="Controles del menú" hidden id="viewer-controls">
-        <span class="viewer-caption">Amplía para leer</span>
+        <span class="viewer-caption">Imagen de referencia: consulta sabores, opciones y condiciones vigentes en Armar pedido.</span>
         <button type="button" id="zoom-out" aria-label="Reducir menú">−</button>
         <output id="zoom-label" aria-live="polite">100%</output>
         <button type="button" id="zoom-in" aria-label="Ampliar menú">+</button>
@@ -39,29 +48,38 @@
         </div>
       </div>
     </section>
-    <section id="catalogo" class="catalog" aria-label="Elige tus productos" hidden>
+    <section id="catalogo" class="catalog" aria-label="Elige tus productos">
       <nav class="categories" id="categories" aria-label="Filtrar productos por categoría"></nav>
       <p id="catalog-status" class="sr-only" role="status"></p>
       <div class="product-grid" id="products"></div>
     </section>
     <noscript><p>El menú está disponible en imagen. Activa JavaScript para personalizar productos y armar tu pedido.</p></noscript>
     <p id="order-status" class="order-status" role="status"></p>
-    <section id="promociones" class="terms" aria-label="Condiciones">
-      <details><summary>Promociones y condiciones</summary>
-        <div id="promotion-terms"><p>Promociones válidas hasta agotar existencias. Sin restricciones adicionales.</p></div>
-        <ul><li>Mini hotcakes: hasta 2 untables y 1 topping incluidos. Untable extra $5; topping extra $10.</li><li>Frappés: leche entera o deslactosada (+$5), y crema batida opcional.</li><li>En los combos, la leche deslactosada no tiene costo extra.</li><li>Envío directo: $20, pedido mínimo $150. Cobertura por confirmar.</li><li>Los precios y condiciones pueden variar en las plataformas de delivery.</li></ul>
-      </details>
+    <section id="promociones" class="terms" aria-label="Promociones">
+      <h2>Promociones</h2><p>Consulta los combos disponibles y elige tus sabores.</p>
+      <a class="button" data-link="promotions" href="../promociones/">Ver promociones</a>
+      <p><a data-link="terms" href="../terminos/">Términos y condiciones</a></p>
     </section>
   </main>
-  <footer class="site-footer wrap"><a data-link="home" href="../">Volver al inicio</a><span>Más que comida, son antojos.</span></footer>
+  <footer class="site-footer wrap">
+  <div class="footer-social"><strong>Síguenos</strong><nav aria-label="Redes sociales de Antojea2">
+    <a data-link="social.instagram" target="_blank" rel="noopener noreferrer" aria-disabled="true">Instagram ↗</a>
+    <a data-link="social.facebook" target="_blank" rel="noopener noreferrer" aria-disabled="true">Facebook ↗</a>
+  </nav></div>
+  <nav class="footer-links" aria-label="Información del sitio">
+    <a data-link="terms" href="../terminos/">Términos y condiciones</a>
+    <a data-link="cookies" href="../cookies/">Política de privacidad y datos</a>
+  </nav>
+  <p class="footer-credit">Proyecto desarrollado por <strong>2 ANTOJEADOS</strong></p>
+</footer>
 
   <div class="cart-bar" id="cart-bar" hidden><button type="button" id="review-order"><span>Ver pedido <span id="cart-count"></span></span><strong id="cart-subtotal"></strong></button></div>
 
-  <dialog id="contact-dialog" class="sheet contact-dialog" aria-labelledby="contact-title">
-    <header class="sheet-header"><h2 id="contact-title">Contacto</h2><button type="button" class="close-button" data-close="contact-dialog" aria-label="Cerrar contacto">×</button></header>
+  <dialog id="contact-dialog" class="sheet contact-dialog shared-dialog" aria-labelledby="contact-title">
+    <header class="sheet-header"><h2 id="contact-title">WhatsApp principal y respaldo</h2><button type="button" class="close-button" data-contact-close aria-label="Cerrar contacto">×</button></header>
     <div class="sheet-body">
-      <a class="contact-option" data-link="whatsapp" target="_blank" rel="noopener noreferrer" aria-disabled="true"><span><strong>Número principal</strong><span data-contact-number="whatsapp"></span></span><span aria-hidden="true">↗</span></a>
-      <a class="contact-option" data-link="whatsappBackup" target="_blank" rel="noopener noreferrer" hidden><span><strong>Número personal · respaldo</strong><span data-contact-number="whatsappBackup"></span></span><span aria-hidden="true">↗</span></a>
+      <a class="contact-option" data-link="whatsapp" target="_blank" rel="noopener noreferrer" aria-disabled="true"><span><strong>WhatsApp principal</strong><span data-contact-number="whatsapp"></span></span><span aria-hidden="true">↗</span></a>
+      <a class="contact-option" data-link="whatsappBackup" target="_blank" rel="noopener noreferrer" hidden><span><strong>WhatsApp de respaldo</strong><span data-contact-number="whatsappBackup"></span></span><span aria-hidden="true">↗</span></a>
     </div>
   </dialog>
 
@@ -88,30 +106,86 @@
     <header class="sheet-header"><h2 id="draft-title">Tu pedido</h2><button type="button" class="close-button" data-close="cart-dialog" aria-label="Cerrar pedido">×</button></header>
     <div class="sheet-body">
       <p id="cart-empty" hidden>Tu pedido está vacío. Elige algo rico en Armar pedido.</p>
+      <section id="order-reference" class="order-reference" aria-label="Folio del pedido" hidden>
+        <p>Folio de pedido <strong id="order-folio"></strong></p>
+        <button id="copy-folio" type="button" class="text-button">Copiar folio</button>
+        <span id="folio-copy-status" class="muted" role="status"></span>
+        <p class="muted">Usa este folio para identificar tu pedido. Si cambias sus datos, se genera uno nuevo.</p>
+      </section>
       <ul id="draft-items" class="draft-items"></ul>
       <div id="cart-details">
-        <button type="button" class="text-button" id="clear-list">Vaciar pedido</button>
+        <button type="button" class="text-button" id="clear-list">Vaciar pedido</button><p id="cart-persistence" class="muted" role="status"></p>
+        <div id="customer-fields" hidden>
+          <label for="customer-name">Tu nombre · opcional</label>
+          <input id="customer-name" autocomplete="given-name" maxlength="80">
+          <label for="customer-phone">Tu teléfono · opcional</label>
+          <input id="customer-phone" type="tel" autocomplete="tel" maxlength="20" inputmode="tel">
+          <p class="muted">Al enviar, registramos tu solicitud, tu contacto y los datos de entrega que agregues para atender el pedido. No te suscribimos a promociones.</p>
+        </div>
+        <div class="bot-field" aria-hidden="true" inert>
+          <label for="order-website">Deja este campo vacío</label>
+          <input id="order-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <label for="order-schedule">¿Para cuándo?</label>
+        <select id="order-schedule" aria-describedby="schedule-note"></select>
+        <p id="schedule-note" class="muted" role="status"></p>
         <fieldset class="fulfillment-choice"><legend>¿Cómo lo recibes?</legend>
           <label><input type="radio" name="fulfillment" value="delivery" checked> Envío a domicilio</label>
           <label><input type="radio" name="fulfillment" value="pickup"> Recoger</label>
         </fieldset>
-        <section id="pickup-details" class="pickup-details" aria-label="Punto para recoger" hidden><p>Te compartimos el punto para recoger al confirmar tu pedido por WhatsApp.</p></section>
+        <section id="pickup-details" class="pickup-details" aria-label="Punto para recoger" hidden><p>Consulta el punto para recoger tu pedido.</p><button type="button" class="text-button" id="open-pickup">Ver ubicación para recoger</button></section>
         <details id="delivery-details" class="delivery-details"><summary>Datos de entrega · opcional</summary>
-          <label for="delivery-address">Dirección y referencias</label>
-          <textarea id="delivery-address" rows="2" maxlength="400" autocomplete="street-address" placeholder="Calle, número, colonia y referencias"></textarea>
+          <label for="delivery-address">Dirección de entrega · Querétaro, México</label>
+          <textarea id="delivery-address" rows="2" maxlength="400" autocomplete="street-address" placeholder="Calle, número y colonia" aria-describedby="address-search-help"></textarea>
+          <p id="address-search-help" class="muted">Al pasar al método de pago buscamos esta dirección con Photon / OpenStreetMap. Pon referencias personales en Observaciones.</p>
+          <button type="button" class="text-button" id="search-address">Buscar dirección en el mapa</button>
           <div class="location-actions"><button type="button" class="button" id="use-location">Usar mi ubicación</button><button type="button" class="text-button" id="remove-location" hidden>Quitar ubicación</button></div>
           <p class="muted">Agrega tu ubicación actual al pedido. Revisa que sea el lugar de entrega.</p>
-          <p id="location-status" class="muted" role="status"></p>
+          <p id="location-status" class="muted" role="status"></p><p id="shipping-estimate" class="muted" hidden></p>
           <div id="location-preview" hidden>
             <iframe id="customer-map" class="map-preview" title="Vista previa de tu ubicación de entrega en OpenStreetMap" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
             <p class="map-attribution">© <a data-link="maps.attribution">OpenStreetMap</a></p>
           </div>
           <a id="location-map" class="text-link" target="_blank" rel="noopener noreferrer" hidden>Revisar punto en Google Maps ↗</a>
         </details>
+        <label for="payment-method">¿Cómo vas a pagar?</label>
+        <select id="payment-method" required aria-describedby="payment-help">
+          <option value="">Elige un método de pago</option>
+          <option value="cash">Efectivo</option>
+          <option value="transfer">Transferencia</option>
+          <option value="card">Tarjeta · sin contacto</option>
+        </select>
+        <p id="payment-help" class="muted">Selecciona cómo pagarás al confirmar tu pedido.</p>
+        <section id="transfer-details" class="transfer-details" aria-label="Datos para transferencia" hidden>
+          <h3>Transferencia bancaria</h3><dl id="transfer-data"></dl>
+          <p id="copy-status" class="muted" role="status"></p>
+          <p class="muted">Espera a que confirmemos disponibilidad y total antes de transferir. Después, comparte tu comprobante por WhatsApp.</p>
+        </section>
         <label for="order-notes">Observaciones</label><textarea id="order-notes" rows="2" maxlength="600" placeholder="¿Algo más que debamos saber?"></textarea>
       </div>
     </div>
-    <footer class="cart-actions" id="cart-actions"><p class="subtotal">Subtotal con extras <strong id="subtotal"></strong></p><p class="muted" id="fulfillment-note">Envío y disponibilidad por confirmar.</p><a id="send-list" class="button button--dark" target="_blank" rel="noopener noreferrer" aria-disabled="true">Enviar pedido por WhatsApp ↗</a><a id="send-backup" class="backup-contact" target="_blank" rel="noopener noreferrer" hidden>¿No te responden en el WhatsApp principal? Enviar al respaldo ↗</a></footer>
+    <footer class="cart-actions" id="cart-actions"><p class="subtotal">Subtotal con extras <strong id="subtotal"></strong></p><p class="muted" id="fulfillment-note">Envío y disponibilidad por confirmar.</p><p id="registration-status" class="muted" role="status" hidden></p><a id="send-list" class="button button--dark" target="_blank" rel="noopener noreferrer" aria-disabled="true">Enviar pedido por WhatsApp ↗</a><a id="send-backup" class="backup-contact" target="_blank" rel="noopener noreferrer" hidden>¿No te responden en el WhatsApp principal? Enviar al respaldo ↗</a></footer>
+  </dialog>
+  <dialog id="pickup-dialog" class="sheet" aria-labelledby="pickup-title">
+    <header class="sheet-header"><h2 id="pickup-title">Punto para recoger</h2><button type="button" class="close-button" data-close="pickup-dialog" aria-label="Cerrar ubicación">×</button></header>
+    <div class="sheet-body"><p id="pickup-address"></p>
+      <iframe id="pickup-map" class="map-preview" title="Punto para recoger Antojea2 en OpenStreetMap" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <p class="map-attribution">© <a data-link="maps.attribution">OpenStreetMap</a></p>
+      <a id="pickup-directions" class="text-link" target="_blank" rel="noopener noreferrer">Cómo llegar ↗</a>
+      <p class="muted">Confirma tu pedido y la hora antes de acudir.</p>
+    </div>
+  </dialog>
+  <dialog id="location-confirm-dialog" class="sheet" aria-labelledby="location-confirm-title">
+    <header class="sheet-header"><h2 id="location-confirm-title">¿Está correcta esta ubicación?</h2><button type="button" class="close-button" data-close="location-confirm-dialog" aria-label="Cerrar confirmación de ubicación">×</button></header>
+    <div class="sheet-body">
+      <iframe id="confirm-location-map" class="map-preview" title="Confirma el punto de entrega en OpenStreetMap" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <div id="address-results" aria-label="Direcciones encontradas"></div>
+      <p class="map-attribution">© <a data-link="maps.attribution">OpenStreetMap</a></p>
+      <p id="confirm-location-coordinates" class="muted"></p>
+      <p>Si el mapa no carga o la ubicación no es correcta, puedes continuar. Cuando confirmemos tu pedido por WhatsApp, comparte ahí la ubicación correcta.</p>
+      <button type="button" class="button button--dark" id="confirm-location-yes">Sí, es correcta</button>
+      <button type="button" class="text-button" data-close="location-confirm-dialog">Compartir después por WhatsApp</button>
+    </div>
   </dialog>
 </body>
 </html>

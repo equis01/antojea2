@@ -41,7 +41,7 @@ Edita `assets/js/config.js`:
 
 - `whatsapp`: `528124215678`, con código de país, sin `+` ni espacios.
 - `whatsappBackup`: `524421916159`, número personal de respaldo. Aparece en la portada y en el pedido. Ambos destinatarios reciben el mismo texto preparado; el cliente elige uno y confirma el envío. Vacío, inválido o igual al principal oculta el respaldo. El sitio no detecta suspensiones de cuentas ni cambia el destinatario automáticamente.
-- `business.hours`: miércoles a domingo, de 5:00 p. m. a 10:00 p. m.; se muestra en inicio y menú. Es informativo y no bloquea pedidos fuera de horario. Al cambiarlo, actualiza también los textos de respaldo en ambos HTML para visitantes sin JavaScript.
+- `business.hours`: miércoles a domingo, de 4:30 p. m. a 10:30 p. m.; se muestra en inicio y menú. La programación se controla con `schedule`: fuera de horario permite solicitar horarios futuros cada 35 minutos. Al cambiarlo, sincroniza esa configuración, el receptor Apps Script si está activo y los textos de respaldo en ambos HTML.
 - `social`: enlaces completos de Instagram, Facebook y TikTok.
 - `delivery`: enlaces completos de Uber Eats, DiDi Food y Rappi.
 - `pages`: rutas internas. `business.city` indica Querétaro.
@@ -52,7 +52,7 @@ Edita `assets/js/config.js`:
 
 La página muestra una sola vista a la vez: **Ver menú** (imagen con zoom de 100% a 400%) o **Armar pedido** (productos por categoría). El pedido se revisa en un panel al pulsar la barra inferior. La imagen existente `assets/img/menu/menu.webp` funciona en móvil sin depender de un lector PDF. El PDF de lineamientos es un documento de marca, no un menú.
 
-Al armar el pedido se selecciona **Todos** por defecto. Los filtros aparecen en este orden: **Todos, Combos, Mini Hotcakes, Frappés**. El catálogo completo mantiene los combos al principio, con el mismo tamaño de fotos y estilo que las demás categorías; después aparecen mini hotcakes y frappés. El orden se controla en `CATEGORIES`. Tocar directamente una foto, sin texto superpuesto, abre un visor dentro de la página, con zoom de 100% a 300%, desplazamiento y cierre con el botón × o Escape. Ver una foto no agrega productos ni modifica el pedido.
+Al armar el pedido se selecciona **Todos** por defecto. Los filtros aparecen en este orden: **Todos, Combos, Mini Hotcakes, Frappés**. El catálogo completo mantiene los combos al principio, destacados con acento naranja en todos los dispositivos; después aparecen mini hotcakes y frappés. El orden se controla en `CATEGORIES`. Tocar directamente una foto, sin texto superpuesto, abre un visor dentro de la página, con zoom de 100% a 300%, desplazamiento y cierre con el botón × o Escape. Ver una foto no agrega productos ni modifica el pedido.
 
 El botón **Contacto** abre un diálogo con el número principal y el número personal de respaldo. Ambos se leen desde `config.js`; sus enlaces abren WhatsApp en otra pestaña. El diálogo se cierra con × o Escape y devuelve el foco al botón Contacto.
 
@@ -64,24 +64,26 @@ Para reemplazar el menú usa el mismo nombre de archivo. Si cambias la ruta, act
 
 - Frappés: leche entera o deslactosada (+$5), con o sin crema batida.
 - Mini hotcakes: hasta 2 untables y 1 topping incluidos, sin obligación de elegirlos. Las porciones extra se agregan aparte: $5 por untable y $10 por topping, incluso del mismo ingrediente ya seleccionado.
-- Combos: cada bebida tiene su propia leche y crema, sin recargo por deslactosada. En el familiar se elige el sabor de los 4 frappés y se personalizan las 2 órdenes de hotcakes por separado. Pa’ el antojo conserva su receta de Nutella y fresa y permite extras.
+- Pareja y el combo individual permiten elegir todos los sabores y cobran $5 por cada bebida deslactosada. Familiar conserva sus opciones y la deslactosada incluida. El combo individual mantiene hotcakes de Nutella y fresa.
 - `SPREADS`, `TOPPINGS` y `FLAVORS` centralizan los ingredientes y sabores. `frappeOptions()` y `hotcakeOptions()` generan grupos reutilizables.
 
 ## Lista y futuras compras
 
+La programación permite solicitar pedidos cada 35 minutos para hoy y los cuatro días siguientes y usa la hora de Querétaro. Los horarios editables están en `CONFIG.schedule`; cada solicitud queda sujeta a confirmación. El registro en Sheets es opcional y viene desactivado. Para activarlo y operar ventas manuales, estados, pagos y reportes, sigue [la guía de Apps Script](integrations/apps-script/README.md). No se ha publicado ninguna hoja ni servicio externo.
+
 `menu.js` separa vistas, filtros, visor, personalizador y estado del pedido. “Elegir” abre un diálogo con opciones, cantidad y precio actualizado; “Agregar” confirma la preparación. Preparaciones iguales suman unidades y preparaciones diferentes permanecen separadas. Desde el pedido se pueden editar opciones y cantidades, eliminar unidades o vaciarlo. El subtotal incluye todos los extras por unidad. El mensaje de WhatsApp contiene los ingredientes de cada producto, las cantidades, el subtotal y las observaciones; el usuario debe enviarlo en WhatsApp.
 
-El pedido se conserva al cambiar de vista, pero solo mientras la página está abierta: no se guarda al recargar. No hay pagos ni checkout complejo. `order` reserva `shipping`; `getSubtotal()` incluye personalizaciones y `getTotal()` permanece pendiente hasta confirmar envío; al recoger no se suma envío. `buildOrderMessage()` separa cada producto, subtotal, entrega y observaciones con líneas en blanco; usa saltos reales CRLF y `Site.whatsapp()` los codifica una sola vez.
+El carrito conserva productos, cantidades y personalizaciones durante 7 días en cookies. No guarda contacto, dirección, coordenadas ni observaciones. Al restaurarlo se recalculan precios y se revisan opciones y disponibilidad. Puede desactivarse desde cookies/. Si se bloquean las cookies o el pedido supera el límite de almacenamiento, se informa y se conserva solo en memoria. No hay pagos ni checkout complejo. `order` reserva `shipping`; `getSubtotal()` incluye personalizaciones y `getTotal()` permanece pendiente hasta confirmar envío; al recoger no se suma envío. `buildOrderMessage()` separa cada producto, subtotal, entrega y observaciones con líneas en blanco; usa saltos reales CRLF y `Site.whatsapp()` los codifica una sola vez.
 
 ## Ubicación y entrega
 
-La dirección y las coordenadas del negocio no se publican en el sitio ni en su configuración. El punto para recoger se comparte por WhatsApp al confirmar el pedido.
+Al elegir Recoger se abre un modal con la dirección y un mapa OpenStreetMap, cargado al abrirlo. El botón Cómo llegar abre Google Maps para calcular la ruta desde el origen que el cliente elija. La dirección y coordenadas vuelven a formar parte de los archivos públicos del sitio, en CONFIG.pickup; ocultarlas en un modal no las hace privadas.
 
 Solo se ofrecen **Envío a domicilio** y **Recoger**. El cliente elige en el pedido; al recoger, se coordina el punto por WhatsApp y se elimina la ubicación del cliente, incluso si había una solicitud pendiente. En envío, abre **Datos de entrega** para escribir dirección y referencias o pulsar **Usar mi ubicación**. La API de geolocalización del navegador pide permiso únicamente al pulsar ese botón. Se genera un enlace `https://www.google.com/maps/search/?api=1&query=LATITUD,LONGITUD`, sin API key ni SDK de Google. `CONFIG.mapsSearchUrl` centraliza ese destino.
 
-El cliente puede revisar el punto, actualizarlo o quitarlo antes de enviar. Es su ubicación actual, no una dirección de entrega verificada: puede complementar el punto con una dirección escrita. Tras autorizar y obtener la ubicación, aparece un mapa de OpenStreetMap con el punto y se incluye un enlace de Google Maps en el mensaje. Las coordenadas se comparten con OpenStreetMap para mostrar la vista previa; el sitio conserva el pedido solo en memoria, sin backend propio. Quitar la ubicación elimina la vista previa y el punto del mensaje. Los destinos están centralizados en `CONFIG.maps` y `CONFIG.mapsSearchUrl`. Los permisos denegados, tiempos de espera y navegadores sin soporte tienen mensajes y alternativa manual.
+El cliente puede revisar el punto, actualizarlo o quitarlo antes de enviar. Es su ubicación actual, no una dirección de entrega verificada: puede complementar el punto con una dirección escrita. Tras autorizar y obtener la ubicación, aparece un mapa de OpenStreetMap con el punto y se incluye un enlace de Google Maps en el mensaje. Las coordenadas se comparten con OpenStreetMap para mostrar la vista previa; el punto del cliente se conserva solo en memoria; el carrito de productos se guarda en cookies. Quitar la ubicación elimina la vista previa y el punto del mensaje. Los destinos están centralizados en `CONFIG.maps` y `CONFIG.mapsSearchUrl`. Los permisos denegados, tiempos de espera y navegadores sin soporte tienen mensajes y alternativa manual.
 
-Se necesita HTTPS en producción; `localhost` permite probarlo con Live Server. Una IP de red local servida por HTTP normalmente no permite geolocalización en el celular. No se calcula distancia, cobertura ni tarifa a partir del punto. Documentación: [geolocalización del navegador](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition) y [Maps URLs](https://developers.google.com/maps/documentation/urls/get-started).
+Se necesita HTTPS en producción; `localhost` permite probarlo con Live Server. Una IP de red local servida por HTTP normalmente no permite geolocalización en el celular. Se calcula distancia en línea recta con Haversine: hasta 500 m sin costo; más de 500 m hasta 3 km $20; por encima, revisar costo y cobertura. El estimado no se añade al total definitivo. CONFIG.shippingEstimate controla la tarifa. Un modal permite confirmar el punto o compartirlo después por WhatsApp. Documentación: [geolocalización del navegador](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition) y [Maps URLs](https://developers.google.com/maps/documentation/urls/get-started).
 
 ## Encabezado y carga
 
@@ -118,3 +120,33 @@ No ejecutes `npm install`: no se requiere Node ni un proceso de compilación.
 4. Abre la URL que GitHub indique cuando termine la publicación.
 
 Las rutas son relativas, por lo que sirven tanto bajo un dominio propio como bajo `usuario.github.io/repositorio/`. También puedes subir estos archivos a cualquier hosting estático. El manifiesto no añade funcionamiento sin conexión ni instala un service worker.
+
+## Navegación y pagos
+
+Inicio y menú comparten el mismo encabezado con menú hamburguesa: Inicio, Ver el menú y pedir, Contacto y Promociones. Contacto abre el mismo diálogo en ambas páginas.
+
+El pedido requiere elegir Efectivo, Transferencia o Tarjeta sin contacto. Los datos de Banregio proporcionados se editan en CONFIG.payments.transfer y se muestran como texto copiable al elegir transferencia. El cliente debe esperar la confirmación del total antes de pagar. No se capturan tarjetas del cliente ni se realizan cobros desde el sitio. La elección de método no significa que el pedido esté pagado.
+
+Clip y Mercado Pago permiten generar enlaces con una cuenta y credenciales privadas desde un servidor; esa integración no está activada. Por ahora tarjeta significa pago presencial contactless, cuya disponibilidad se confirma al atender el pedido.
+
+## Páginas y movimiento
+
+promociones/ contiene los combos desde products.js; terminos/ contiene condiciones; cookies/ permite controlar el guardado. menu/#promociones conserva un acceso animado a promociones. Las animaciones respetan prefers-reduced-motion.
+
+El catálogo dinámico se muestra por defecto. La imagen histórica del menú sigue disponible con un aviso de consultar las opciones vigentes en el catálogo; reemplázala cuando tengas el diseño actualizado.
+
+## Folio del pedido
+
+Cada pedido muestra un folio copiable con formato XXXXX-XXXXX (por ejemplo K7M4P-9RX2D) y lo incluye en WhatsApp, incluso sin Sheets. Principal y respaldo llevan el mismo folio para la misma versión del pedido. Si cambian los datos, se genera otro; al vaciar o recargar la página se inicia una referencia nueva. La cookie conserva productos, no folios ni datos personales.
+
+El folio usa 10 caracteres aleatorios (50 bits), sin caracteres ambiguos 0/O ni 1/I. La posibilidad de coincidencia es extremadamente baja, pero la generación sin un registro central no garantiza unicidad absoluta: no es consecutivo ni acredita pago o confirmación. Al activar Sheets se guarda exactamente el mismo identificador. Actualiza y vuelve a implementar Code.gs para que acepte el formato nuevo; sigue admitiendo los folios largos y UUID anteriores.
+
+
+## Buscar una dirección escrita
+
+Al enfocar Método de pago se consulta una vez la dirección modificada; también hay un botón de búsqueda manual. Photon/Komoot busca con countrycode=MX y límites geográficos; luego el sitio exige estado Querétaro y país México en cada resultado. Se rechazan resultados genéricos de ciudad/estado y coordenadas fuera de los límites. CONFIG.addressSearch centraliza el proveedor y la región.
+
+Las coincidencias requieren confirmación en el mapa; un centro de calle no garantiza un número exacto. Los errores y resultados vacíos permiten continuar por WhatsApp. Cambiar dirección, pasar a recoger, pedir GPS o cerrar el carrito invalida respuestas pendientes. Se usa caché en memoria y consultas espaciadas, sin búsquedas por tecla. La dirección escrita se comparte con Photon; las referencias personales van en Observaciones.
+
+Se comprobó una consulta real de calle pública y los flujos con respuestas simuladas. El servicio público admite uso moderado, puede limitar tráfico y no garantiza disponibilidad: [documentación de Photon](https://github.com/komoot/photon). Para mayor volumen, cambia el proveedor. No se añadió un backend propio.
+
