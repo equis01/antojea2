@@ -1,5 +1,5 @@
-// Script vinculado a una hoja PRIVADA. Copia products.js como Catalog.gs.
-const HEADERS = ["Folio", "Creado", "Canal", "Nombre", "Teléfono", "Modalidad", "Programado", "Detalle", "Subtotal", "Envío", "Descuento", "Total", "Estado", "Pago", "Dirección cliente", "Ubicación cliente", "Observaciones", "Método de pago"];
+// Script vinculado a una hoja PRIVADA. Copia products.js como Catalog.gs y promo-codes.js como PromoCodes.gs.
+const HEADERS = ["Folio", "Creado", "Canal", "Nombre", "Teléfono", "Modalidad", "Programado", "Detalle", "Subtotal", "Envío", "Descuento", "Total", "Estado", "Pago", "Dirección cliente", "Ubicación cliente", "Observaciones", "Método de pago", "Correo", "Código de promoción"];
 const STATES = ["Pendiente", "Confirmado", "Preparando", "Entregado", "Cancelado"];
 const PAYMENTS = ["Pendiente", "Pagado", "Reembolsado"];
 const HOURS = { zone: "America/Mexico_City", days: [3, 4, 5, 6, 0], opens: "16:30", closes: "22:30" };
@@ -17,9 +17,10 @@ function setup() {
   book.setSpreadsheetTimeZone(HOURS.zone);
   const sheet = book.getSheetByName("Pedidos") || book.insertSheet("Pedidos");
   if (!sheet.getLastRow()) sheet.appendRow(HEADERS);
-  // Migración de la versión anterior: agregar columna sin mover datos existentes.
-  if (sheet.getRange(1, 1, 1, 17).getValues()[0].join("|") === HEADERS.slice(0, 17).join("|") && !sheet.getRange(1, 18).getValue()) sheet.getRange(1, 18).setValue(HEADERS[17]);
-  if (sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0].join("|") !== HEADERS.join("|")) throw new Error("La hoja Pedidos tiene columnas distintas. Usa una hoja nueva.");
+  // Agregar columnas al final sin desplazar pedidos de versiones anteriores.
+  const existing = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0];
+  if (existing.some((value, index) => value !== HEADERS[index] && !(index >= 17 && value === ""))) throw new Error("La hoja Pedidos tiene columnas distintas. Usa una hoja nueva.");
+  sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
   sheet.setFrozenRows(1);
   sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");
   sheet.getRange("B2:B").setNumberFormat("yyyy-mm-dd hh:mm");
@@ -56,7 +57,7 @@ function doPost(event) {
     if (sheet.getLastRow() > 1 && sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).createTextFinder(input.id).matchEntireCell(true).findNext()) return json_({ ok: true, id: input.id });
     const valid = validateOrder_(input);
     append_(sheet, [input.id, new Date(), "Web", valid.name, valid.phone, valid.fulfillment, valid.schedule, valid.detail, valid.subtotal,
-      valid.fulfillment === "Recoger" ? 0 : "", 0, "", "Pendiente", "Pendiente", valid.address, valid.location, valid.notes, valid.payment]);
+      valid.fulfillment === "Recoger" ? 0 : "", valid.discount, "", "Pendiente", "Pendiente", valid.address, valid.location, valid.notes, valid.payment, valid.email, valid.promoCode]);
     SpreadsheetApp.flush();
     return json_({ ok: true, id: input.id });
   } catch (_) {
@@ -110,6 +111,8 @@ function validateOrder_(input) {
   const customer = input.customer || {};
   const name = text_(customer.name, 80);
   let phone = text_(customer.phone, 20).replace(/[\s()+-]/g, "");
+  const email = text_(customer.email || "", 254);
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Correo inválido");
   if (phone && !/^\d{10,15}$/.test(phone)) throw new Error("Teléfono inválido");
   if (/^\d{10}$/.test(phone)) phone = "52" + phone;
   let subtotal = 0;
@@ -148,7 +151,9 @@ function validateOrder_(input) {
     if (!point || !Number.isFinite(point.latitude) || !Number.isFinite(point.longitude) || Math.abs(point.latitude) > 90 || Math.abs(point.longitude) > 180) throw new Error("Ubicación inválida");
     location = `https://www.google.com/maps/search/?api=1&query=${point.latitude.toFixed(6)},${point.longitude.toFixed(6)}`;
   }
-  return { name, phone, payment: methods[input.paymentMethod], fulfillment: input.fulfillment === "pickup" ? "Recoger" : "Envío", schedule: validSchedule_(input.scheduledFor, new Date()),
+  const promo = PromoCodes.evaluate(text_(input.promoCode || "", 40), subtotal, Utilities.formatDate(new Date(), HOURS.zone, "yyyy-MM-dd"));
+  if (promo.error) throw new Error("Promoción no aplicable");
+  return { name, phone, email, promoCode: promo.code, discount: promo.discount, payment: methods[input.paymentMethod], fulfillment: input.fulfillment === "pickup" ? "Recoger" : "Envío", schedule: validSchedule_(input.scheduledFor, new Date()),
     detail, subtotal, address: input.fulfillment === "delivery" ? text_(input.address, 400) : "", location, notes: text_(input.notes, 600) };
 }
 
@@ -174,7 +179,7 @@ function manualSale() {
   lock.waitLock(10000);
   try {
     append_(book_().getSheetByName("Pedidos"), [Utilities.getUuid(), new Date(), "Manual", text_(customer.getResponseText(), 80), number,
-      "Recoger", "", "Venta manual · sin desglose", total, 0, 0, "", "Entregado", "Pagado", "", "", "", method]);
+      "Recoger", "", "Venta manual · sin desglose", total, 0, 0, "", "Entregado", "Pagado", "", "", "", method, "", ""]);
     SpreadsheetApp.flush();
   } finally { lock.releaseLock(); }
   refreshReports();
@@ -188,8 +193,8 @@ function refreshReports() {
   const revenue = sales.reduce((sum, row) => sum + row[11], 0);
   const customers = new Map();
   sales.forEach(row => {
-    if (!row[4]) return; // No confundir personas con el mismo nombre.
-    const key = String(row[4]);
+    if (!row[4] && !row[18]) return; // No confundir personas con el mismo nombre.
+    const key = row[4] ? String(row[4]) : String(row[18]).toLowerCase();
     const record = customers.get(key) || [key, row[3], 0, 0, row[1]];
     record[2]++; record[3] += row[11];
     if (row[1] > record[4]) { record[4] = row[1]; record[1] = row[3]; }
@@ -200,12 +205,12 @@ function refreshReports() {
   const metrics = [["Métrica · histórico completo", "Valor"], ["Actualizado", new Date()], ["Pedidos registrados", rows.length],
     ["Ventas entregadas y pagadas", sales.length], ["Ingresos con envío (MXN)", revenue],
     ["Ticket promedio con envío (MXN)", sales.length ? revenue / sales.length : 0],
-    ["Clientes identificados por teléfono", customers.size], ["Clientes con 2+ compras", [...customers.values()].filter(c => c[2] >= 2).length],
+    ["Clientes identificados por teléfono o correo", customers.size], ["Clientes con 2+ compras", [...customers.values()].filter(c => c[2] >= 2).length],
     ["Entregados y pagados sin total (revisar envío)", rows.filter(r => r[12] === "Entregado" && r[13] === "Pagado" && typeof r[11] !== "number").length]];
   summary.getRange(1, 1, metrics.length, 2).setValues(metrics);
   const sheet = book.getSheetByName("Clientes") || book.insertSheet("Clientes");
   sheet.clearContents();
-  sheet.getRange(1, 1, 1, 5).setValues([["Teléfono", "Nombre", "Compras", "Gasto con envío (MXN)", "Última compra"]]);
+  sheet.getRange(1, 1, 1, 5).setValues([["Teléfono o correo", "Nombre", "Compras", "Gasto con envío (MXN)", "Última compra"]]);
   sheet.getRange("A2:A").setNumberFormat("@");
   if (customers.size) sheet.getRange(2, 1, customers.size, 5).setValues([...customers.values()].map(row => row.map(safeCell_)));
   sheet.setFrozenRows(1);

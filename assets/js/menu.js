@@ -20,6 +20,54 @@ let requestedSchedule = "";
 let savedCartSnapshot = "";
 let pendingLocation = null;
 let lastAddressSearch = "";
+let addressSearchTimer;
+let activePromoCode = "";
+
+function queueAddressSearch() {
+  clearTimeout(addressSearchTimer);
+  addressSearchTimer = setTimeout(() => { void searchWrittenAddress(); }, 1400);
+}
+
+function contactIsValid() {
+  const phone = document.getElementById("customer-phone");
+  const email = document.getElementById("customer-email");
+  const number = phone.value.trim().replace(/[\s()+-]/g, "");
+  const mail = email.value.trim();
+  phone.setCustomValidity(number && !/^\d{10,15}$/.test(number) ? "Escribe un teléfono de 10 a 15 dígitos." : "");
+  email.setCustomValidity(mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail) ? "Escribe un correo válido." : "");
+  return phone.reportValidity() && email.reportValidity();
+}
+
+function currentPromotion() {
+  return PromoCodes.evaluate(activePromoCode, getSubtotal(), Schedule.localNow().date);
+}
+
+function validateAppliedPromo() {
+  const promo = currentPromotion();
+  if (promo.error) {
+    activePromoCode = "";
+    document.getElementById("promo-status").textContent = `${promo.error} Se retiró el descuento del pedido.`;
+  }
+  document.getElementById("remove-promo").hidden = !activePromoCode;
+}
+
+function renderAmounts() {
+  const subtotal = getSubtotal(), discount = currentPromotion().discount;
+  const estimate = order.fulfillment === "pickup" ? { amount: 0, outside: false } : shippingEstimate(order.location) || { amount: CONFIG.shippingEstimate.flatRate, provisional: true };
+  const amount = estimate?.amount ?? null;
+  document.getElementById("estimate-products").textContent = money.format(subtotal);
+  document.getElementById("discount-row").hidden = !discount;
+  document.getElementById("estimate-discount").textContent = `−${money.format(discount)}`;
+  const shippingText = order.fulfillment === "pickup" ? "Sin costo" : amount === null ? "Revisar precio y cobertura" : `${money.format(amount)} · Precio por confirmar`;
+  document.getElementById("estimate-shipping").textContent = shippingText;
+  document.getElementById("cart-shipping-summary").textContent = `Envío estimado: ${shippingText}`;
+  document.getElementById("estimate-total-row").hidden = amount === null;
+  document.getElementById("estimate-total").textContent = amount === null ? "" : money.format(subtotal - discount + amount);
+  document.getElementById("estimate-note").textContent = estimate?.outside
+    ? "Más de 3 km: revisaremos cobertura y costo; podría ser mayor o no estar disponible."
+    : estimate.provisional ? "Estimación inicial sin ubicación confirmada. Hasta 500 m el envío es gratis; de más de 500 m a 3 km, $20. Fuera de ese radio revisamos precio y cobertura."
+      : "Importes estimados. Confirmaremos el total y la cobertura antes de cobrar.";
+}
 
 function previewAddress(result) {
   pendingLocation = { latitude: result.latitude, longitude: result.longitude };
@@ -175,7 +223,8 @@ function setupPayment() {
 
 function orderPayload() {
   return {
-    customer: { name: document.getElementById("customer-name").value.trim(), phone: document.getElementById("customer-phone").value.trim() },
+    customer: { name: document.getElementById("customer-name").value.trim(), phone: document.getElementById("customer-phone").value.trim(), email: document.getElementById("customer-email").value.trim() },
+    promoCode: currentPromotion().code,
     fulfillment: order.fulfillment, scheduledFor: requestedSchedule,
     paymentMethod: document.getElementById("payment-method").value,
     address: order.fulfillment === "delivery" ? order.address : "",
@@ -217,7 +266,7 @@ function showDialog(dialog) {
 }
 
 function closeDialog(dialog) {
-  if (dialog === cartDialog) { AddressSearch.cancel(); locationRequest += 1; renderLocation(false); }
+  if (dialog === cartDialog) { clearTimeout(addressSearchTimer); AddressSearch.cancel(); locationRequest += 1; renderLocation(false); }
   if (dialog.id === "location-confirm-dialog") document.getElementById("confirm-location-map").removeAttribute("src");
   if (dialog.id === "location-confirm-dialog" && pendingLocation) {
     pendingLocation = null;
@@ -515,7 +564,7 @@ function getSubtotal() {
   return [...order.items.values()].reduce((sum, line) => sum + unitPrice(line.product, line.selectedOptions) * line.quantity, 0);
 }
 
-function getTotal() { return order.shipping === null ? null : getSubtotal() + order.shipping; }
+function getTotal() { return order.shipping === null ? null : getSubtotal() - currentPromotion().discount + order.shipping; }
 
 function mapsUrl() {
   return Site.mapsUrl(order.location);
@@ -530,6 +579,7 @@ function buildOrderMessage() {
     blocks.push(`Folio: ${Orders.identify(payload)}`);
     if (payload.customer.name) blocks.push(`Nombre: ${payload.customer.name}`);
     if (payload.customer.phone) blocks.push(`Teléfono: ${payload.customer.phone}`);
+    if (payload.customer.email) blocks.push(`Correo: ${payload.customer.email}`);
   }
   order.items.forEach(line => {
     const sections = optionSections(line);
@@ -542,13 +592,10 @@ function buildOrderMessage() {
       details,
       `Importe: ${money.format(unitPrice(line.product, line.selectedOptions) * line.quantity)}`
     ].filter(Boolean).join(newline));
-    const estimate = shippingEstimate(order.location);
-    if (estimate) blocks.push(`Distancia aproximada en línea recta: ${estimate.km.toFixed(2)} km.${newline}` + (estimate.outside
-      ? "Más de 3 km: revisar costo de envío y cobertura."
-      : `Envío estimado: ${money.format(estimate.amount)}; sujeto a confirmación.`));
-    else blocks.push("Compartiré mi ubicación correcta por WhatsApp al confirmar el pedido.");
   });
   blocks.push(`*Subtotal con extras: ${money.format(getSubtotal())}*`);
+  const promo = currentPromotion();
+  if (promo.code) blocks.push(`Promoción: ${promo.code}${newline}Descuento en productos: −${money.format(promo.discount)}`);
   const payment = document.getElementById("payment-method");
   if (payment.value) blocks.push(`*Método de pago*${newline}${payment.selectedOptions[0].textContent}`);
   const scheduleOption = Schedule.options().options.find(option => option.value === requestedSchedule);
@@ -556,12 +603,18 @@ function buildOrderMessage() {
   if (requestedSchedule === "now" && order.fulfillment === "delivery") blocks.push("Entrega a domicilio: aproximadamente 45 minutos, por confirmar.");
   if (order.fulfillment === "pickup") {
     blocks.push("*Entrega: recoger*");
+    blocks.push(`*Total: ${money.format(getSubtotal() - promo.discount)}*`);
   } else {
     blocks.push([
       "*Entrega: envío a domicilio*",
       order.address.trim(),
       order.location ? `Ubicación:${newline}${mapsUrl()}` : ""
     ].filter(Boolean).join(newline));
+    const estimate = shippingEstimate(order.location);
+    if (estimate) blocks.push(`Distancia aproximada en línea recta: ${estimate.km.toFixed(2)} km.${newline}` + (estimate.outside
+      ? "Más de 3 km: revisar costo de envío y cobertura."
+      : `Envío estimado: ${money.format(estimate.amount)}${newline}Total estimado: ${money.format(getSubtotal() - promo.discount + estimate.amount)}; sujeto a confirmación.`));
+    else blocks.push(`Envío estimado inicial: ${money.format(CONFIG.shippingEstimate.flatRate)}. Precio y cobertura por confirmar.${newline}Total estimado inicial: ${money.format(getSubtotal() - promo.discount + CONFIG.shippingEstimate.flatRate)}.${newline}Compartiré mi ubicación correcta por WhatsApp al confirmar el pedido.`);
   }
   if (order.notes.trim()) blocks.push(`*Observaciones*${newline}${order.notes.trim()}`);
   blocks.push(order.fulfillment === "pickup" ? "Disponibilidad y hora para recoger por confirmar." : "Envío y disponibilidad por confirmar.");
@@ -569,6 +622,8 @@ function buildOrderMessage() {
 }
 
 function updateOrderLink() {
+  validateAppliedPromo();
+  renderAmounts();
   saveCart();
   if (!order.items.size) { Orders.snapshot = ""; Orders.currentId = ""; }
   const message = buildOrderMessage();
@@ -604,6 +659,7 @@ function renderLocation(busy = false, message = "") {
 }
 
 function clearLocation(message = "") {
+  clearTimeout(addressSearchTimer);
   AddressSearch.cancel();
   // Invalida respuestas pendientes sin reactivar una ubicación que el usuario quitó.
   locationRequest += 1;
@@ -614,6 +670,7 @@ function clearLocation(message = "") {
 
 function requestLocation() {
   if (order.fulfillment !== "delivery") return;
+  clearTimeout(addressSearchTimer);
   AddressSearch.cancel();
   lastAddressSearch = order.address.trim();
   const requestId = ++locationRequest;
@@ -685,6 +742,7 @@ function changeQuantity(key, delta) {
 
 function renderDraft() {
   const hasItems = order.items.size > 0;
+  document.getElementById("clear-list").hidden = !hasItems;
   document.getElementById("cart-bar").hidden = !hasItems;
   document.body.classList.toggle("has-cart", hasItems);
   document.getElementById("cart-empty").hidden = hasItems;
@@ -787,6 +845,13 @@ document.getElementById("product-photo").addEventListener("load", () => { if (ph
 window.addEventListener("resize", () => { if (photoDialog.open) updatePhotoZoom(photoZoom); });
 document.getElementById("clear-list").addEventListener("click", () => {
   order.items.clear();
+  activePromoCode = "";
+  document.getElementById("promo-code").value = "";
+  document.getElementById("promo-status").textContent = "";
+  lastAddressSearch = "";
+  ["customer-name", "customer-phone", "customer-email"].forEach(id => {
+    const input = document.getElementById(id); input.value = ""; input.setCustomValidity("");
+  });
   order.notes = "";
   order.address = "";
   document.getElementById("order-notes").value = "";
@@ -809,9 +874,10 @@ document.getElementById("order-notes").addEventListener("input", event => {
 document.getElementById("delivery-address").addEventListener("input", event => {
   order.address = event.target.value;
   lastAddressSearch = "";
-  clearLocation("Dirección actualizada. La buscaremos al pasar al método de pago.");
+  clearLocation("Dirección actualizada. La buscaremos cuando dejes de escribir un momento.");
+  if (!event.isComposing) queueAddressSearch();
 });
-document.getElementById("payment-method").addEventListener("focus", () => { void searchWrittenAddress(); });
+document.getElementById("delivery-address").addEventListener("compositionend", queueAddressSearch);
 document.getElementById("search-address").addEventListener("click", () => { void searchWrittenAddress(true); });
 document.getElementById("use-location").addEventListener("click", requestLocation);
 document.getElementById("copy-folio").addEventListener("click", async () => {
@@ -850,19 +916,39 @@ document.getElementById("order-schedule").addEventListener("change", event => {
       return;
     }
     if (!order.items.size || document.getElementById("order-website").value) { event.preventDefault(); return; }
+    if (!contactIsValid()) { event.preventDefault(); return; }
     if (!document.getElementById("payment-method").reportValidity()) { event.preventDefault(); return; }
     if (Orders.enabled()) {
-      const phone = document.getElementById("customer-phone");
-      const normalizedPhone = phone.value.trim().replace(/[\s()+-]/g, "");
-      phone.setCustomValidity(normalizedPhone && !/^\d{10,15}$/.test(normalizedPhone) ? "Escribe un teléfono de 10 a 15 dígitos, o deja el campo vacío." : "");
-      if (!phone.reportValidity()) { event.preventDefault(); return; }
       const payload = orderPayload();
       void Orders.register(payload, Orders.identify(payload));
     }
   });
 });
-document.getElementById("customer-fields").hidden = !Orders.enabled();
-["customer-name", "customer-phone"].forEach(id => document.getElementById(id).addEventListener("input", updateOrderLink));
+["customer-name", "customer-phone", "customer-email"].forEach(id => document.getElementById(id).addEventListener("input", () => {
+  document.getElementById("customer-phone").setCustomValidity("");
+  document.getElementById("customer-email").setCustomValidity("");
+  updateOrderLink();
+}));
+document.getElementById("redeem-promo").addEventListener("click", () => {
+  const promo = PromoCodes.evaluate(document.getElementById("promo-code").value, getSubtotal(), Schedule.localNow().date);
+  if (promo.error || !promo.code) {
+    document.getElementById("promo-status").textContent = promo.error || "Escribe un código para canjearlo.";
+    return;
+  }
+  activePromoCode = promo.code;
+  document.getElementById("promo-code").value = promo.code;
+  document.getElementById("promo-status").textContent = `Código ${promo.code} aplicado a tus productos.`;
+  updateOrderLink();
+});
+document.getElementById("promo-code").addEventListener("keydown", event => {
+  if (event.key === "Enter") { event.preventDefault(); document.getElementById("redeem-promo").click(); }
+});
+document.getElementById("remove-promo").addEventListener("click", () => {
+  activePromoCode = "";
+  document.getElementById("promo-code").value = "";
+  document.getElementById("promo-status").textContent = "Promoción retirada.";
+  updateOrderLink();
+});
 refreshSchedule();
 setupPayment();
 restoreCart();

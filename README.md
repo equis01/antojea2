@@ -144,9 +144,21 @@ El folio usa 10 caracteres aleatorios (50 bits), sin caracteres ambiguos 0/O ni 
 
 ## Buscar una dirección escrita
 
-Al enfocar Método de pago se consulta una vez la dirección modificada; también hay un botón de búsqueda manual. Photon/Komoot busca con countrycode=MX y límites geográficos; luego el sitio exige estado Querétaro y país México en cada resultado. Se rechazan resultados genéricos de ciudad/estado y coordenadas fuera de los límites. CONFIG.addressSearch centraliza el proveedor y la región.
+Tras una pausa de 1.4 segundos al escribir se consulta la dirección modificada; también hay un botón de búsqueda manual. Photon/Komoot busca con countrycode=MX y límites geográficos; luego el sitio exige estado Querétaro y país México en cada resultado. Se rechazan resultados genéricos de ciudad/estado y coordenadas fuera de los límites. CONFIG.addressSearch centraliza el proveedor y la región.
 
-Las coincidencias requieren confirmación en el mapa; un centro de calle no garantiza un número exacto. Los errores y resultados vacíos permiten continuar por WhatsApp. Cambiar dirección, pasar a recoger, pedir GPS o cerrar el carrito invalida respuestas pendientes. Se usa caché en memoria y consultas espaciadas, sin búsquedas por tecla. La dirección escrita se comparte con Photon; las referencias personales van en Observaciones.
+Las coincidencias requieren confirmación en el mapa; un centro de calle no garantiza un número exacto. Los errores y resultados vacíos permiten continuar por WhatsApp. Cambiar dirección, pasar a recoger, pedir GPS o cerrar el carrito invalida respuestas pendientes. Se usa caché en memoria y consultas espaciadas, sin consultar por cada tecla. La dirección escrita se comparte con Photon; las referencias personales van en Observaciones.
 
 Se comprobó una consulta real de calle pública y los flujos con respuestas simuladas. El servicio público admite uso moderado, puede limitar tráfico y no garantiza disponibilidad: [documentación de Photon](https://github.com/komoot/photon). Para mayor volumen, cambia el proveedor. No se añadió un backend propio.
 
+
+## Contacto, carrito y códigos
+
+Vaciar carrito está al principio de la lista y elimina productos, personalizaciones, contacto, promoción y cookies del carrito. Teléfono y correo son opcionales; si se llenan, se valida su formato.
+
+El resumen muestra productos, descuento, envío estimado y total estimado cuando se conoce la tarifa. Hasta 500 m el envío estimado es cero; más de 500 m y hasta 3 km, $20; más de 3 km, revisar cobertura sin presentar un total cerrado. Recoger no suma envío. WhatsApp incluye estos datos una sola vez.
+
+Los códigos se configuran en assets/js/promo-codes.js, inicialmente sin códigos activos. Cada entrada tiene code (mayúsculas), type (fixed o percent), value, minSubtotal, expires (YYYY-MM-DD o vacío) y active. Solo un código por pedido, aplicable al subtotal de productos con extras, sin descontar envío. El descuento nunca supera el subtotal. Cambiar el carrito vuelve a validar mínimo y vigencia; no se persiste el código en cookies.
+
+Al activar Sheets, copia también promo-codes.js como PromoCodes.gs, ejecuta setup y vuelve a implementar Code.gs. El servidor recalcula el descuento y rechaza códigos inválidos. Los códigos del sitio son públicos; esta versión no ofrece canjes únicos, cuotas por cliente ni códigos secretos.
+
+Sin ubicación confirmada se muestra un envío inicial de $20 y su total estimado, con precio y cobertura por confirmar. Al confirmar el punto, se actualiza a cero hasta 500 m, $20 hasta 3 km o revisión fuera de cobertura. Esta estimación no se registra como tarifa definitiva en Sheets.

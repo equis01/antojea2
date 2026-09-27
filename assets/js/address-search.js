@@ -1,6 +1,6 @@
 "use strict";
 
-// Una consulta al pasar a pago o pulsar Buscar; nunca por cada tecla.
+// Consulta tras una pausa al escribir o al pulsar Buscar; nunca por cada tecla.
 const AddressSearch = {
   cache: new Map(), controller: null, lastRequest: 0,
   cancel() { this.controller?.abort(); this.controller = null; },

@@ -71,6 +71,16 @@ body.dialog-open { overflow: hidden; }
 #custom-quantity { display: block; margin-top: 6px; }
 .form-error { color: #9d2d0b; font-size: .85rem; margin: 0; }
 .draft-items { list-style: none; padding: 0; margin: 0; }
+.cart-tools { display: flex; justify-content: flex-end; margin-block: 14px; }
+.cart-tools .button { background: transparent; padding: 8px 14px; font-size: .85rem; }
+.promo-redemption, .order-estimate { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 20px; }
+.promo-redemption summary { min-height: 44px; font-weight: 700; }
+.promo-entry { display: flex; flex-wrap: wrap; gap: 10px; }
+.promo-entry input { flex: 1 1 140px; width: 100%; min-width: 0; padding: 10px; border: 1px solid var(--line); background: var(--cream); }
+.promo-entry .button { padding: 8px 12px; background: transparent; }
+.order-estimate { font-size: .85rem; }
+.order-estimate .muted { font-size: .75rem; }
+#cart-shipping-summary { margin-bottom: 6px; }
 .order-reference { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
 .order-reference p { margin-bottom: 8px; }
 #order-folio { display: block; font-size: .95rem; letter-spacing: .03em; overflow-wrap: anywhere; user-select: all; }

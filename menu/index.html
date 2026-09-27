@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="../assets/css/menu.css">
   <script defer src="../assets/js/config.js"></script>
   <script defer src="../assets/js/products.js"></script>
+  <script defer src="../assets/js/promo-codes.js"></script>
   <script defer src="../assets/js/cart-cookies.js"></script>
   <script defer src="../assets/js/main.js"></script>
   <script defer src="../assets/js/schedule.js"></script>
@@ -112,15 +113,19 @@
         <span id="folio-copy-status" class="muted" role="status"></span>
         <p class="muted">Usa este folio para identificar tu pedido. Si cambias sus datos, se genera uno nuevo.</p>
       </section>
+      <div class="cart-tools"><button type="button" class="button" id="clear-list" hidden>Vaciar carrito</button></div>
       <ul id="draft-items" class="draft-items"></ul>
       <div id="cart-details">
-        <button type="button" class="text-button" id="clear-list">Vaciar pedido</button><p id="cart-persistence" class="muted" role="status"></p>
-        <div id="customer-fields" hidden>
+        <p id="cart-persistence" class="muted" role="status"></p>
+        <div id="customer-fields">
           <label for="customer-name">Tu nombre · opcional</label>
           <input id="customer-name" autocomplete="given-name" maxlength="80">
-          <label for="customer-phone">Tu teléfono · opcional</label>
+          <p id="contact-help" class="muted">Si quieres, déjanos un teléfono o correo para contactarte sobre tu pedido. Puedes continuar sin llenarlos.</p>
+          <label for="customer-phone">Teléfono · opcional</label>
           <input id="customer-phone" type="tel" autocomplete="tel" maxlength="20" inputmode="tel">
-          <p class="muted">Al enviar, registramos tu solicitud, tu contacto y los datos de entrega que agregues para atender el pedido. No te suscribimos a promociones.</p>
+          <label for="customer-email">Correo electrónico · opcional</label>
+          <input id="customer-email" type="email" autocomplete="email" maxlength="254" aria-describedby="contact-help">
+          <p class="muted">Usamos tu contacto y los datos de entrega que agregues para atender el pedido. No te suscribimos a promociones.</p>
         </div>
         <div class="bot-field" aria-hidden="true" inert>
           <label for="order-website">Deja este campo vacío</label>
@@ -137,7 +142,7 @@
         <details id="delivery-details" class="delivery-details"><summary>Datos de entrega · opcional</summary>
           <label for="delivery-address">Dirección de entrega · Querétaro, México</label>
           <textarea id="delivery-address" rows="2" maxlength="400" autocomplete="street-address" placeholder="Calle, número y colonia" aria-describedby="address-search-help"></textarea>
-          <p id="address-search-help" class="muted">Al pasar al método de pago buscamos esta dirección con Photon / OpenStreetMap. Pon referencias personales en Observaciones.</p>
+          <p id="address-search-help" class="muted">Buscamos la dirección al dejar de escribir un momento, solo en Querétaro, México, con Photon / OpenStreetMap. Pon referencias personales en Observaciones.</p>
           <button type="button" class="text-button" id="search-address">Buscar dirección en el mapa</button>
           <div class="location-actions"><button type="button" class="button" id="use-location">Usar mi ubicación</button><button type="button" class="text-button" id="remove-location" hidden>Quitar ubicación</button></div>
           <p class="muted">Agrega tu ubicación actual al pedido. Revisa que sea el lugar de entrega.</p>
@@ -161,10 +166,23 @@
           <p id="copy-status" class="muted" role="status"></p>
           <p class="muted">Espera a que confirmemos disponibilidad y total antes de transferir. Después, comparte tu comprobante por WhatsApp.</p>
         </section>
+        <details class="promo-redemption"><summary>Redimir promoción</summary>
+          <label for="promo-code">Código de promoción</label>
+          <div class="promo-entry"><input id="promo-code" maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false"><button type="button" class="button" id="redeem-promo">Canjear código</button></div>
+          <button type="button" class="text-button" id="remove-promo" hidden>Quitar promoción</button>
+          <p id="promo-status" class="muted" role="status"></p>
+        </details>
         <label for="order-notes">Observaciones</label><textarea id="order-notes" rows="2" maxlength="600" placeholder="¿Algo más que debamos saber?"></textarea>
+        <section class="order-estimate" aria-label="Resumen de importes" aria-live="polite">
+          <p class="subtotal">Productos con extras <strong id="estimate-products"></strong></p>
+          <p class="subtotal" id="discount-row" hidden>Descuento <strong id="estimate-discount"></strong></p>
+          <p class="subtotal">Envío estimado <strong id="estimate-shipping">Por confirmar</strong></p>
+          <p class="subtotal" id="estimate-total-row" hidden>Total estimado <strong id="estimate-total"></strong></p>
+          <p class="muted" id="estimate-note">Confirmaremos el costo y la cobertura antes de cobrar.</p>
+        </section>
       </div>
     </div>
-    <footer class="cart-actions" id="cart-actions"><p class="subtotal">Subtotal con extras <strong id="subtotal"></strong></p><p class="muted" id="fulfillment-note">Envío y disponibilidad por confirmar.</p><p id="registration-status" class="muted" role="status" hidden></p><a id="send-list" class="button button--dark" target="_blank" rel="noopener noreferrer" aria-disabled="true">Enviar pedido por WhatsApp ↗</a><a id="send-backup" class="backup-contact" target="_blank" rel="noopener noreferrer" hidden>¿No te responden en el WhatsApp principal? Enviar al respaldo ↗</a></footer>
+    <footer class="cart-actions" id="cart-actions"><p class="subtotal">Subtotal con extras <strong id="subtotal"></strong></p><p class="muted" id="cart-shipping-summary">Envío estimado: por confirmar</p><p class="muted" id="fulfillment-note">Envío y disponibilidad por confirmar.</p><p id="registration-status" class="muted" role="status" hidden></p><a id="send-list" class="button button--dark" target="_blank" rel="noopener noreferrer" aria-disabled="true">Enviar pedido por WhatsApp ↗</a><a id="send-backup" class="backup-contact" target="_blank" rel="noopener noreferrer" hidden>¿No te responden en el WhatsApp principal? Enviar al respaldo ↗</a></footer>
   </dialog>
   <dialog id="pickup-dialog" class="sheet" aria-labelledby="pickup-title">
     <header class="sheet-header"><h2 id="pickup-title">Punto para recoger</h2><button type="button" class="close-button" data-close="pickup-dialog" aria-label="Cerrar ubicación">×</button></header>
