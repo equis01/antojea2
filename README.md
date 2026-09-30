@@ -58,13 +58,13 @@ El botón **Contacto** abre un diálogo con el número principal y el número pe
 
 Para reemplazar el menú usa el mismo nombre de archivo. Si cambias la ruta, actualiza `menuImage` en `config.js` y el `src` de respaldo en `menu/index.html` (este último permite verlo sin JavaScript).
 
-`assets/js/products.js` contiene las categorías y 12 productos transcritos del menú proporcionado, con precios reales vigentes hasta nuevo aviso. Edita `price`, `description`, `available` e `image` allí. `available: false` muestra “Agotado” y desactiva el botón. Mantén sincronizados el catálogo y la imagen del menú al cambiar precios o disponibilidad.
+`assets/js/products.js` contiene las categorías y 13 productos transcritos del menú proporcionado, con precios reales vigentes hasta nuevo aviso. Edita `price`, `description`, `available` e `image` allí. `available: false` muestra “Agotado” y desactiva el botón. Mantén sincronizados el catálogo y la imagen del menú al cambiar precios o disponibilidad.
 
 `options` controla los campos y precios del personalizador. Tipos: `single` para leche, crema, sabores o futuros tamaños; `multiple` para ingredientes incluidos con un máximo; `quantity` para porciones extra; `fixed` para recetas de combos. Cada opción tiene `additionalPrice`. Las rutas de imágenes son relativas a `menu/index.html`.
 
 - Frappés: leche entera o deslactosada (+$5), con o sin crema batida.
 - Mini hotcakes: hasta 2 untables y 1 topping incluidos, sin obligación de elegirlos. Las porciones extra se agregan aparte: $5 por untable y $10 por topping, incluso del mismo ingrediente ya seleccionado.
-- Pareja y el combo individual permiten elegir todos los sabores y cobran $5 por cada bebida deslactosada. Familiar conserva sus opciones y la deslactosada incluida. El combo individual mantiene hotcakes de Nutella y fresa.
+- Todos los combos permiten elegir los sabores y cobran $5 por cada bebida deslactosada, incluido Familiar. El nuevo combo incluye dos frappés y 15 mini hotcakes personalizables por $200. El combo individual mantiene hotcakes de Nutella y fresa.
 - `SPREADS`, `TOPPINGS` y `FLAVORS` centralizan los ingredientes y sabores. `frappeOptions()` y `hotcakeOptions()` generan grupos reutilizables.
 
 ## Lista y futuras compras
@@ -133,7 +133,7 @@ Clip y Mercado Pago permiten generar enlaces con una cuenta y credenciales priva
 
 promociones/ contiene los combos desde products.js; terminos/ contiene condiciones; cookies/ permite controlar el guardado. menu/#promociones conserva un acceso animado a promociones. Las animaciones respetan prefers-reduced-motion.
 
-El catálogo dinámico se muestra por defecto. La imagen histórica del menú sigue disponible con un aviso de consultar las opciones vigentes en el catálogo; reemplázala cuando tengas el diseño actualizado.
+El catálogo dinámico se muestra por defecto. El visor usa menu.webp, optimizado desde assets/img/menu/menu.jpeg. El archivo menu.png es el cartel de apertura, no el menú. Conservamos los originales; al actualizar el menú, regenera el WebP y cambia su versión en config.js y menu/index.html para evitar una imagen antigua en caché.
 
 ## Folio del pedido
 

@@ -6,19 +6,19 @@ const CATEGORIES = [
   { id: "frappes", name: "Frappés" }
 ];
 
-// Pareja y Pa’l Antojo: sabores a elegir, deslactosada +$5 por bebida.
+// Todos los combos: sabores a elegir, deslactosada +$5 por bebida.
 const FLAVORS = ["Fresa", "Moka", "Oreo", "Chocolate", "Nutella", "Capuchino"];
 const SPREADS = ["Nutella", "Chocolate", "Lechera"];
 const TOPPINGS = ["Fresa", "Plátano", "Durazno", "Oreo"];
 const choices = (names, price = 0) => names.map((name, index) => ({ id: String(index), name, additionalPrice: price }));
 
-function frappeOptions(prefix = "drink", section = "Tu frappé", combo = false, chooseFlavor = false) {
+function frappeOptions(prefix = "drink", section = "Tu frappé", chooseFlavor = false) {
   const groups = [];
   if (chooseFlavor) groups.push({ id: `${prefix}-flavor`, section, name: "Sabor", type: "single", required: true, choices: choices(FLAVORS) });
   groups.push(
     { id: `${prefix}-milk`, section, name: "Leche", type: "single", required: true, default: "whole", choices: [
       { id: "whole", name: "Entera", additionalPrice: 0 },
-      { id: "lactose-free", name: "Deslactosada", additionalPrice: combo ? 0 : 5 }
+      { id: "lactose-free", name: "Deslactosada", additionalPrice: 5 }
     ] },
     { id: `${prefix}-cream`, section, name: "Crema batida", type: "single", required: true, default: "with", choices: [
       { id: "with", name: "Con crema", additionalPrice: 0 },
@@ -45,7 +45,7 @@ function hotcakeOptions(prefix = "hotcakes", section = "Tus mini hotcakes", fixe
 const FRAPPE_OPTIONS = frappeOptions();
 const HOTCAKE_OPTIONS = hotcakeOptions();
 const FAMILY_OPTIONS = [
-  ...Array.from({ length: 4 }, (_, index) => frappeOptions(`drink-${index + 1}`, `Frappé ${index + 1}`, true, true)).flat(),
+  ...Array.from({ length: 4 }, (_, index) => frappeOptions(`drink-${index + 1}`, `Frappé ${index + 1}`, true)).flat(),
   ...hotcakeOptions("hotcakes-1", "Mini hotcakes 1 · 15 piezas"),
   ...hotcakeOptions("hotcakes-2", "Mini hotcakes 2 · 15 piezas")
 ];
@@ -59,17 +59,22 @@ const PRODUCTS = [
   { id: "FR-NUT", category: "frappes", name: "Frappé de Nutella", description: "Leche y crema batida a tu gusto.", price: 60, image: "../assets/img/products/frappes/nutella.webp", available: true, options: FRAPPE_OPTIONS },
   { id: "FR-CAP", category: "frappes", name: "Frappé de Capuchino", description: "Leche y crema batida a tu gusto.", price: 55, image: "../assets/img/products/frappes/capuchino.webp", available: true, options: FRAPPE_OPTIONS },
   { id: "HC-15", category: "hotcakes", name: "Mini hotcakes · 15 piezas", description: "Incluyen hasta 2 untables y 1 topping.", price: 50, image: "../assets/img/products/hotcakes/nutella-fresa.webp", available: true, options: HOTCAKE_OPTIONS },
-  { id: "HC-25", category: "hotcakes", name: "Mini hotcakes · 25 piezas", description: "Incluyen hasta 2 untables y 1 topping.", price: 60, image: "../assets/img/products/hotcakes/nutella-fresa.webp", available: true, options: HOTCAKE_OPTIONS },
-  { id: "HC-35", category: "hotcakes", name: "Mini hotcakes · 35 piezas", description: "Incluyen hasta 2 untables y 1 topping.", price: 70, image: "../assets/img/products/hotcakes/nutella-fresa.webp", available: true, options: HOTCAKE_OPTIONS },
+  { id: "HC-25", category: "hotcakes", name: "Mini hotcakes · 25 piezas", description: "Incluyen hasta 2 untables y 1 topping.", price: 60, image: "../assets/img/products/hotcakes/nutella-fresa-25-35.webp", available: true, options: HOTCAKE_OPTIONS },
+  { id: "HC-35", category: "hotcakes", name: "Mini hotcakes · 35 piezas", description: "Incluyen hasta 2 untables y 1 topping.", price: 70, image: "../assets/img/products/hotcakes/nutella-fresa-25-35.webp", available: true, options: HOTCAKE_OPTIONS },
   { id: "CO-PAR", category: "combos", name: "Combo pareja", description: "2 frappés con sabores a elegir. Deslactosada +$5 por bebida.", price: 110, image: "../assets/img/combos/pareja.webp", available: true, options: [
-    ...frappeOptions("drink-1", "Frappé 1", false, true),
-    ...frappeOptions("drink-2", "Frappé 2", false, true)
+    ...frappeOptions("drink-1", "Frappé 1", true),
+    ...frappeOptions("drink-2", "Frappé 2", true)
   ] },
   { id: "CO-ANT", category: "combos", name: "Pa’l Antojo", description: "1 frappé a elegir + 15 mini hotcakes con Nutella y fresa. Deslactosada +$5.", price: 100, image: "../assets/img/combos/pa-el-antojo.webp", available: true, options: [
-    ...frappeOptions("drink", "Tu frappé", false, true),
+    ...frappeOptions("drink", "Tu frappé", true),
     ...hotcakeOptions("hotcakes", "Mini hotcakes · 15 piezas", true)
   ] },
-  { id: "CO-FAM", category: "combos", name: "Combo familiar", description: "4 frappés + 2 órdenes de 15 mini hotcakes.", price: 250, image: "../assets/img/combos/familiar.webp", available: true, options: FAMILY_OPTIONS }
+  { id: "CO-DIS", category: "combos", name: "Pa’ Disfrutar", description: "2 frappés a elegir + 15 mini hotcakes con hasta 2 untables y 1 topping. Deslactosada +$5 por bebida.", price: 200, image: "../assets/img/combos/pa-disfrutar.webp", available: true, options: [
+    ...frappeOptions("drink-1", "Frappé 1", true),
+    ...frappeOptions("drink-2", "Frappé 2", true),
+    ...hotcakeOptions("hotcakes", "Mini hotcakes · 15 piezas")
+  ] },
+  { id: "CO-FAM", category: "combos", name: "Combo familiar", description: "4 frappés + 2 órdenes de 15 mini hotcakes. Deslactosada +$5 por bebida.", price: 250, image: "../assets/img/combos/familiar.webp", available: true, options: FAMILY_OPTIONS }
 ];
 
 /* Para agregar productos, copia una entrada y usa un id único.
