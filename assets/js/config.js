@@ -14,7 +14,7 @@ const CONFIG = {
   delivery: {
     uberEats: "https://www.ubereats.com/queretaro/food-delivery/antojea2-mx/oVXaC5FrTvWvKI7yaI--MQ/",
     didiFood: "https://www.didi-food.com/es-MX/food/store/5764615870786308274/ANTOJEA2",
-    rappi: "https://www.rappi.com.mx/restaurantes/1930480041-antojea2"
+    rappi: "https://rappi.sng.link/Ev50a/ynhb?pcn=RX_MX_AL_OR_MU_705229_ALL_RES_RAP_ALL_NA_00000&_dl=gbrappi%3A%2F%2Fcom.grability.rappi%3Fstore_type%3Drestaurant%26brand_id%3D705229&_ddl=gbrappi%3A%2F%2Fcom.grability.rappi%3Fstore_type%3Drestaurant%26brand_id%3D705229&_fallback_redirect=https%3A%2F%2Frappi.com.mx%2F&_force_redirect=true"
   },
   business: {
     name: "Antojea2", city: "Querétaro", currency: "MXN", locale: "es-MX",
